@@ -1,0 +1,108 @@
+@page "/"
+@using Microsoft.Extensions.Logging
+@using Soenneker.Blazor.Dayjs.Abstract
+@using Soenneker.Blazor.Dayjs
+@using Soenneker.Blazor.Dayjs.Configuration
+@using Soenneker.Blazor.Dayjs.Dtos
+
+@inject ILogger<Index> Logger
+@inject IDayJsInterop DayJsInterop
+
+@implements IAsyncDisposable
+
+<img src="https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png" />
+<h1>Soenneker.Blazor.Dayjs demo</h1>
+<p>This page demonstrates some of the common usages for the interop library.</p>
+<br />
+
+<hr />
+
+<h2>Live relative time</h2>
+<p>Updates automatically with no C# timers.</p>
+<div>
+    <strong>Created:</strong>
+    <DayJsRelative Value="CreatedAt" UpdateInterval="10s" />
+    <span>(live)</span>
+</div>
+<div>
+    <strong>LiveFromNow:</strong>
+    <LiveFromNow Value="CreatedAt" />
+</div>
+
+<hr />
+
+<h2>Live clock</h2>
+<div>
+    <strong>Local time:</strong>
+    <DayJsNow Format="HH:mm:ss" UpdateInterval="1s" />
+</div>
+<div>
+    <strong>Chicago:</strong>
+    <DayJsNow Format="HH:mm:ss" Timezone="America/Chicago" UpdateInterval="1s" />
+</div>
+
+<hr />
+
+<h2>Countdown</h2>
+<div>
+    <strong>Launch in:</strong>
+    <DayJsUntil Value="LaunchTime" Format="mm:ss" UpdateInterval="1s" />
+</div>
+
+<hr />
+
+<h2>Manual subscription</h2>
+<p>Subscribe once, receive updates from JS.</p>
+<div>
+    <strong>Manual relative:</strong> @_manualRelative
+</div>
+
+<hr />
+
+<h2>One-off formatting</h2>
+<div>
+    <strong>Formatted:</strong> @_formattedNow
+</div>
+<div>
+    <strong>Duration:</strong> @_humanizedDuration
+</div>
+
+@code{
+    private DayJsSubscription? _manualSubscription;
+    private string _manualRelative = "loading...";
+    private string _formattedNow = "loading...";
+    private string _humanizedDuration = "loading...";
+
+    private readonly DateTimeOffset CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-5);
+    private readonly DateTimeOffset LaunchTime = DateTimeOffset.UtcNow.AddMinutes(5);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await DayJsInterop.Initialize(new DayJsOptions
+        {
+            UseCdn = true,
+            LoadRelativeTime = true,
+            LoadTimezone = true,
+            LoadUtc = true,
+            LoadDuration = true
+        });
+
+        _formattedNow = await DayJsInterop.Format(DateTimeOffset.UtcNow, "YYYY-MM-DD HH:mm:ss");
+        _humanizedDuration = await DayJsInterop.DurationHumanize(TimeSpan.FromMinutes(90));
+
+        _manualSubscription = await DayJsInterop.SubscribeRelative(
+            CreatedAt,
+            TimeSpan.FromSeconds(30),
+            value =>
+            {
+                _manualRelative = value;
+                _ = InvokeAsync(StateHasChanged);
+            });
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_manualSubscription is not null)
+            await _manualSubscription.DisposeAsync();
+    }
+}

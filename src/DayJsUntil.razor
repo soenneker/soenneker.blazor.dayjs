@@ -1,0 +1,73 @@
+@namespace Soenneker.Blazor.Dayjs
+@using System
+@using Soenneker.Blazor.Dayjs.Abstract
+@using Soenneker.Blazor.Dayjs.Dtos
+@using Soenneker.Blazor.Dayjs.Utils
+@inject IDayJsInterop DayJsInterop
+
+@inherits Soenneker.Quark.CoreCancellableComponent
+
+@if (_value is not null)
+{
+    @(_value)
+}
+
+@code {
+    [Parameter] public DateTimeOffset Value { get; set; }
+    [Parameter] public string Format { get; set; } = "mm:ss";
+    [Parameter] public string? UpdateInterval { get; set; } = "1s";
+    [Parameter] public string? Timezone { get; set; }
+    [Parameter] public bool ClampToZero { get; set; } = true;
+    [Parameter] public bool AutomaticUpdate { get; set; } = true;
+
+    private string? _value;
+    private DayJsSubscription? _subscription;
+    private string? _subscriptionKey;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var key = $"{Value.ToUnixTimeMilliseconds()}|{Format}|{UpdateInterval}|{Timezone}|{ClampToZero}|{AutomaticUpdate}";
+
+        if (key == _subscriptionKey && _subscription is not null)
+            return;
+
+        _subscriptionKey = key;
+        await Resubscribe();
+    }
+
+    private async Task Resubscribe()
+    {
+        if (_subscription is not null)
+            await _subscription.DisposeAsync();
+
+        if (!AutomaticUpdate)
+        {
+            _subscription = null;
+            _value = await DayJsInterop.Until(Value, Format, Timezone, ClampToZero);
+            _ = InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        var interval = DayJsIntervalParser.ParseOrDefault(UpdateInterval, TimeSpan.FromSeconds(1));
+
+        _subscription = await DayJsInterop.SubscribeUntil(
+            Value,
+            Format,
+            interval,
+            value =>
+            {
+                _value = value;
+                _ = InvokeAsync(StateHasChanged);
+            },
+            Timezone,
+            ClampToZero);
+    }
+
+    public override async ValueTask DisposeAsync()
+    {
+        await base.DisposeAsync();
+
+        if (_subscription is not null)
+            await _subscription.DisposeAsync();
+    }
+}

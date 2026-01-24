@@ -1,0 +1,72 @@
+@namespace Soenneker.Blazor.Dayjs
+@using System
+@using Soenneker.Blazor.Dayjs.Abstract
+@using Soenneker.Blazor.Dayjs.Dtos
+@using Soenneker.Blazor.Dayjs.Utils
+@using Soenneker.Quark
+@inject IDayJsInterop DayJsInterop
+
+@inherits CoreCancellableComponent
+
+@if (_value is not null)
+{
+    @(_value)
+}
+
+@code {
+    [Parameter] public DateTimeOffset Value { get; set; }
+    [Parameter] public string? UpdateInterval { get; set; } = "1m";
+    [Parameter] public bool WithoutSuffix { get; set; }
+    [Parameter] public string? Timezone { get; set; }
+    [Parameter] public bool AutomaticUpdate { get; set; } = true;
+
+    private string? _value;
+    private DayJsSubscription? _subscription;
+    private string? _subscriptionKey;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var key = $"{Value.ToUnixTimeMilliseconds()}|{UpdateInterval}|{WithoutSuffix}|{Timezone}|{AutomaticUpdate}";
+
+        if (key == _subscriptionKey && _subscription is not null)
+            return;
+
+        _subscriptionKey = key;
+        await Resubscribe();
+    }
+
+    private async Task Resubscribe()
+    {
+        if (_subscription is not null)
+            await _subscription.DisposeAsync();
+
+        if (!AutomaticUpdate)
+        {
+            _subscription = null;
+            _value = await DayJsInterop.FromNow(Value, WithoutSuffix, Timezone);
+            _ = InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        var interval = DayJsIntervalParser.ParseOrDefault(UpdateInterval, TimeSpan.FromMinutes(1));
+
+        _subscription = await DayJsInterop.SubscribeRelative(
+            Value,
+            interval,
+            value =>
+            {
+                _value = value;
+                _ = InvokeAsync(StateHasChanged);
+            },
+            WithoutSuffix,
+            Timezone);
+    }
+
+    public override async ValueTask DisposeAsync()
+    {
+        await base.DisposeAsync();
+
+        if (_subscription is not null)
+            await _subscription.DisposeAsync();
+    }
+}
