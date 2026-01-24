@@ -128,29 +128,10 @@ export class DayJsInterop {
         const dayjs = this.ensureDayJs();
 
         switch (sub.type) {
-            case "now": {
-                const now = this.getNow(sub.timezone);
-                return now.format(sub.format);
-            }
             case "relative": {
                 const target = this.withTimezone(dayjs(sub.value), sub.timezone);
                 const base = this.getNow(sub.timezone);
                 return target.from(base, sub.withoutSuffix);
-            }
-            case "until": {
-                const target = this.withTimezone(dayjs(sub.value), sub.timezone);
-                const base = this.getNow(sub.timezone);
-                let diff = target.diff(base);
-
-                if (sub.clampToZero && diff < 0) {
-                    diff = 0;
-                }
-
-                if (dayjs.utc) {
-                    return dayjs.utc(diff).format(sub.format);
-                }
-
-                return dayjs(diff).format(sub.format);
             }
             default:
                 return "";
@@ -208,11 +189,9 @@ export class DayJsInterop {
         const sub = {
             id,
             type: subscriber.type,
-            format: subscriber.format,
             timezone: subscriber.timezone,
             value: subscriber.value,
             withoutSuffix: subscriber.withoutSuffix === true,
-            clampToZero: subscriber.clampToZero !== false,
             intervalMs,
             lastTick: 0,
             dotNetRef: subscriber.dotNetRef
@@ -230,11 +209,6 @@ export class DayJsInterop {
         this.ensureDayJs();
     }
 
-    format(value, format, timezone) {
-        const dayjs = this.ensureDayJs();
-        return this.withTimezone(dayjs(value), timezone).format(format);
-    }
-
     fromNow(value, withoutSuffix, timezone) {
         const dayjs = this.ensureDayJs();
         const target = this.withTimezone(dayjs(value), timezone);
@@ -249,48 +223,9 @@ export class DayJsInterop {
         return target.to(base, withoutSuffix === true);
     }
 
-    add(value, amountMs, format, timezone) {
-        const dayjs = this.ensureDayJs();
-        const added = dayjs(value).add(amountMs, "ms");
-        return this.withTimezone(added, timezone).format(format);
-    }
-
-    subtract(value, amountMs, format, timezone) {
-        const dayjs = this.ensureDayJs();
-        const subtracted = dayjs(value).subtract(amountMs, "ms");
-        return this.withTimezone(subtracted, timezone).format(format);
-    }
-
     durationHumanize(amountMs, withoutSuffix) {
         const dayjs = this.ensureDayJs();
         return dayjs.duration(amountMs).humanize(withoutSuffix === true);
-    }
-
-    until(value, format, timezone, clampToZero) {
-        const dayjs = this.ensureDayJs();
-        const target = this.withTimezone(dayjs(value), timezone);
-        const base = this.getNow(timezone);
-        let diff = target.diff(base);
-
-        if (clampToZero === true && diff < 0) {
-            diff = 0;
-        }
-
-        if (dayjs.utc) {
-            return dayjs.utc(diff).format(format);
-        }
-
-        return dayjs(diff).format(format);
-    }
-
-    subscribeNow(format, timezone, intervalMs, dotNetRef) {
-        return this.createSubscription({
-            type: "now",
-            format,
-            timezone,
-            intervalMs,
-            dotNetRef
-        });
     }
 
     subscribeRelative(value, intervalMs, withoutSuffix, timezone, dotNetRef) {
@@ -300,18 +235,6 @@ export class DayJsInterop {
             intervalMs,
             withoutSuffix,
             timezone,
-            dotNetRef
-        });
-    }
-
-    subscribeUntil(value, format, intervalMs, timezone, clampToZero, dotNetRef) {
-        return this.createSubscription({
-            type: "until",
-            value,
-            format,
-            intervalMs,
-            timezone,
-            clampToZero,
             dotNetRef
         });
     }

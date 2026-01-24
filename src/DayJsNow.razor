@@ -1,11 +1,12 @@
 @namespace Soenneker.Blazor.Dayjs
 @using System
-@using Soenneker.Blazor.Dayjs.Abstract
-@using Soenneker.Blazor.Dayjs.Dtos
+@using System.Globalization
+@using System.Threading
+@using System.Threading.Tasks
 @using Soenneker.Blazor.Dayjs.Utils
-@inject IDayJsInterop DayJsInterop
+@using Soenneker.Quark
 
-@inherits Soenneker.Quark.CoreCancellableComponent
+@inherits CoreCancellableComponent
 
 @if (_value is not null)
 {
@@ -19,7 +20,6 @@
     [Parameter] public bool AutomaticUpdate { get; set; } = true;
 
     private string? _value;
-    private DayJsSubscription? _subscription;
     private DayJsSubscriptionKey _subscriptionKey;
     private bool _hasSubscriptionKey;
 
@@ -27,7 +27,7 @@
     {
         var key = new DayJsSubscriptionKey(0, Format, UpdateInterval, Timezone, false, false, AutomaticUpdate);
 
-        if (_hasSubscriptionKey && _subscription is not null && _subscriptionKey.Equals(key))
+        if (_hasSubscriptionKey && _subscriptionKey.Equals(key))
             return;
 
         _subscriptionKey = key;
@@ -37,38 +37,76 @@
 
     private async Task Resubscribe()
     {
-        var token = CancellationToken;
-
-        if (_subscription is not null)
-            await _subscription.DisposeAsync();
+        await ResetCancellation();
 
         if (!AutomaticUpdate)
         {
-            _subscription = null;
-            _value = await DayJsInterop.Format(DateTimeOffset.UtcNow, Format, Timezone, token);
+            _value = FormatNow();
             _ = InvokeAsync(StateHasChanged);
             return;
         }
 
         var interval = DayJsIntervalParser.ParseOrDefault(UpdateInterval, TimeSpan.FromSeconds(1));
+        _value = FormatNow();
+        _ = InvokeAsync(StateHasChanged);
+        _ = RunLoop(interval, CancellationToken);
+    }
 
-        _subscription = await DayJsInterop.SubscribeNow(
-            Format,
-            Timezone,
-            interval,
-            value =>
+    private async Task RunLoop(TimeSpan interval, CancellationToken token)
+    {
+        try
+        {
+            using var timer = new PeriodicTimer(interval);
+
+            while (await timer.WaitForNextTickAsync(token))
             {
-                _value = value;
+                _value = FormatNow();
                 _ = InvokeAsync(StateHasChanged);
-            },
-            token);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private string FormatNow()
+    {
+        var now = GetNow();
+        return now.ToString(Format, CultureInfo.InvariantCulture);
+    }
+
+    private DateTimeOffset GetNow()
+    {
+        if (string.IsNullOrWhiteSpace(Timezone))
+            return DateTimeOffset.Now;
+
+        if (TryResolveTimeZone(Timezone, out TimeZoneInfo? zone))
+            return TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, zone);
+
+        return DateTimeOffset.Now;
+    }
+
+    private static bool TryResolveTimeZone(string timezone, out TimeZoneInfo? zone)
+    {
+        try
+        {
+            zone = TimeZoneInfo.FindSystemTimeZoneById(timezone);
+            return true;
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            zone = null;
+            return false;
+        }
+        catch (InvalidTimeZoneException)
+        {
+            zone = null;
+            return false;
+        }
     }
 
     public override async ValueTask DisposeAsync()
     {
-        if (_subscription is not null)
-            await _subscription.DisposeAsync();
-
         await base.DisposeAsync();
     }
 }

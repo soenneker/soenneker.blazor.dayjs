@@ -1,11 +1,13 @@
 @namespace Soenneker.Blazor.Dayjs
 @using System
-@using Soenneker.Blazor.Dayjs.Abstract
-@using Soenneker.Blazor.Dayjs.Dtos
+@using System.Globalization
+@using System.Text
+@using System.Threading
+@using System.Threading.Tasks
 @using Soenneker.Blazor.Dayjs.Utils
-@inject IDayJsInterop DayJsInterop
+@using Soenneker.Quark
 
-@inherits Soenneker.Quark.CoreCancellableComponent
+@inherits CoreCancellableComponent
 
 @if (_value is not null)
 {
@@ -21,7 +23,6 @@
     [Parameter] public bool AutomaticUpdate { get; set; } = true;
 
     private string? _value;
-    private DayJsSubscription? _subscription;
     private DayJsSubscriptionKey _subscriptionKey;
     private bool _hasSubscriptionKey;
 
@@ -29,7 +30,7 @@
     {
         var key = new DayJsSubscriptionKey(Value.ToUnixTimeMilliseconds(), Format, UpdateInterval, Timezone, false, ClampToZero, AutomaticUpdate);
 
-        if (_hasSubscriptionKey && _subscription is not null && _subscriptionKey.Equals(key))
+        if (_hasSubscriptionKey && _subscriptionKey.Equals(key))
             return;
 
         _subscriptionKey = key;
@@ -39,41 +40,117 @@
 
     private async Task Resubscribe()
     {
-        var token = CancellationToken;
-
-        if (_subscription is not null)
-            await _subscription.DisposeAsync();
+        await ResetCancellation();
 
         if (!AutomaticUpdate)
         {
-            _subscription = null;
-            _value = await DayJsInterop.Until(Value, Format, Timezone, ClampToZero, token);
+            _value = FormatRemaining();
             _ = InvokeAsync(StateHasChanged);
             return;
         }
 
         var interval = DayJsIntervalParser.ParseOrDefault(UpdateInterval, TimeSpan.FromSeconds(1));
+        _value = FormatRemaining();
+        _ = InvokeAsync(StateHasChanged);
+        _ = RunLoop(interval, CancellationToken);
+    }
 
-        _subscription = await DayJsInterop.SubscribeUntil(
-            Value,
-            Format,
-            interval,
-            value =>
+    private async Task RunLoop(TimeSpan interval, CancellationToken token)
+    {
+        try
+        {
+            using var timer = new PeriodicTimer(interval);
+
+            while (await timer.WaitForNextTickAsync(token))
             {
-                _value = value;
+                _value = FormatRemaining();
                 _ = InvokeAsync(StateHasChanged);
-            },
-            Timezone,
-            ClampToZero,
-            token);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private string FormatRemaining()
+    {
+        var now = GetNow();
+        var remaining = Value - now;
+
+        if (ClampToZero && remaining < TimeSpan.Zero)
+            remaining = TimeSpan.Zero;
+
+        var format = EscapeTimeSpanFormat(Format);
+        return remaining.ToString(format, CultureInfo.InvariantCulture);
+    }
+
+    private DateTimeOffset GetNow()
+    {
+        if (string.IsNullOrWhiteSpace(Timezone))
+            return DateTimeOffset.Now;
+
+        if (TryResolveTimeZone(Timezone, out TimeZoneInfo? zone))
+            return TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, zone);
+
+        return DateTimeOffset.Now;
+    }
+
+    private static bool TryResolveTimeZone(string timezone, out TimeZoneInfo? zone)
+    {
+        try
+        {
+            zone = TimeZoneInfo.FindSystemTimeZoneById(timezone);
+            return true;
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            zone = null;
+            return false;
+        }
+        catch (InvalidTimeZoneException)
+        {
+            zone = null;
+            return false;
+        }
+    }
+
+    private static string EscapeTimeSpanFormat(string format)
+    {
+        if (string.IsNullOrWhiteSpace(format))
+            return "c";
+
+        var builder = new StringBuilder(format.Length + 2);
+        var escaping = false;
+
+        foreach (char ch in format)
+        {
+            if (escaping)
+            {
+                builder.Append(ch);
+                escaping = false;
+                continue;
+            }
+
+            if (ch == '\\')
+            {
+                builder.Append(ch);
+                escaping = true;
+                continue;
+            }
+
+            if (ch == ':')
+            {
+                builder.Append('\\');
+            }
+
+            builder.Append(ch);
+        }
+
+        return builder.ToString();
     }
 
     public override async ValueTask DisposeAsync()
     {
-        if (_subscription is not null)
-            await _subscription.DisposeAsync();
-
         await base.DisposeAsync();
     }
-
 }

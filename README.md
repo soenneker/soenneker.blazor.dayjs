@@ -68,13 +68,13 @@ Live relative time:
 <DayJsRelative Value="CreatedAt" UpdateInterval="1m" />
 ```
 
-Live clock:
+Live clock (uses .NET format strings):
 
 ```
-<DayJsNow Format="HH:mm:ss" Timezone="America/Chicago" UpdateInterval="1s" />
+<DayJsNow Format="HH:mm:ss" UpdateInterval="1s" />
 ```
 
-Countdown:
+Countdown (uses .NET `TimeSpan` formats):
 
 ```
 <DayJsUntil Value="LaunchTime" Format="mm:ss" UpdateInterval="1s" />

@@ -70,20 +70,14 @@
         <article class="card">
             <div class="card-header">
                 <h2>Live clock</h2>
-                <span class="tag">Realtime</span>
+                <span class="tag">C#</span>
             </div>
-            <p>High-frequency clocks with timezone support.</p>
+            <p>Updates on a C# timer with .NET formats.</p>
             <div class="card-body">
                 <div class="kv">
                     <strong>Local time</strong>
                     <div class="value">
                         <DayJsNow Format="HH:mm:ss" UpdateInterval="1s" />
-                    </div>
-                </div>
-                <div class="kv">
-                    <strong>Chicago</strong>
-                    <div class="value">
-                        <DayJsNow Format="HH:mm:ss" Timezone="America/Chicago" UpdateInterval="1s" />
                     </div>
                 </div>
             </div>
@@ -92,9 +86,9 @@
         <article class="card">
             <div class="card-header">
                 <h2>Countdown</h2>
-                <span class="tag">Event</span>
+                <span class="tag">C#</span>
             </div>
-            <p>Keep users anchored on what is next.</p>
+            <p>Time remaining using a C# timer.</p>
             <div class="card-body">
                 <div class="kv">
                     <strong>Launch in</strong>
@@ -123,15 +117,11 @@
 
         <article class="card wide">
             <div class="card-header">
-                <h2>One-off formatting</h2>
+                <h2>Duration formatting</h2>
                 <span class="tag">Format</span>
             </div>
-            <p>Format timestamps and durations on demand.</p>
+            <p>Humanize durations on demand.</p>
             <div class="card-body">
-                <div class="kv">
-                    <strong>Formatted</strong>
-                    <div class="value mono">@_formattedNow</div>
-                </div>
                 <div class="kv">
                     <strong>Duration</strong>
                     <div class="value">@_humanizedDuration</div>
@@ -144,7 +134,6 @@
 @code{
     private DayJsSubscription? _manualSubscription;
     private string _manualRelative = "loading...";
-    private string _formattedNow = "loading...";
     private string _humanizedDuration = "loading...";
 
     private readonly DateTimeOffset CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-5);
@@ -161,7 +150,6 @@
             LoadDuration = true
         });
 
-        _formattedNow = await DayJsInterop.Format(DateTimeOffset.UtcNow, "YYYY-MM-DD HH:mm:ss");
         _humanizedDuration = await DayJsInterop.DurationHumanize(TimeSpan.FromMinutes(90));
 
         _manualSubscription = await DayJsInterop.SubscribeRelative(

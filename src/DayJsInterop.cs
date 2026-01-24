@@ -118,12 +118,6 @@ public sealed class DayJsInterop : IDayJsInterop
     }
 
 
-    public async ValueTask<string> Format(DateTimeOffset value, string format, string? timezone = null, CancellationToken cancellationToken = default)
-    {
-        await EnsureInitialized(cancellationToken);
-        return await _jsRuntime.InvokeAsync<string>("DayJsInterop.format", cancellationToken, value, format, timezone);
-    }
-
     public async ValueTask<string> FromNow(DateTimeOffset value, bool withoutSuffix = false, string? timezone = null, CancellationToken cancellationToken = default)
     {
         await EnsureInitialized(cancellationToken);
@@ -136,50 +130,10 @@ public sealed class DayJsInterop : IDayJsInterop
         return await _jsRuntime.InvokeAsync<string>("DayJsInterop.toNow", cancellationToken, value, withoutSuffix, timezone);
     }
 
-    public async ValueTask<string> Add(DateTimeOffset value, TimeSpan amount, string format, string? timezone = null, CancellationToken cancellationToken = default)
-    {
-        await EnsureInitialized(cancellationToken);
-        return await _jsRuntime.InvokeAsync<string>("DayJsInterop.add", cancellationToken, value, amount.TotalMilliseconds, format, timezone);
-    }
-
-    public async ValueTask<string> Subtract(DateTimeOffset value, TimeSpan amount, string format, string? timezone = null, CancellationToken cancellationToken = default)
-    {
-        await EnsureInitialized(cancellationToken);
-        return await _jsRuntime.InvokeAsync<string>("DayJsInterop.subtract", cancellationToken, value, amount.TotalMilliseconds, format, timezone);
-    }
-
     public async ValueTask<string> DurationHumanize(TimeSpan duration, bool withoutSuffix = false, CancellationToken cancellationToken = default)
     {
         await EnsureInitialized(cancellationToken);
         return await _jsRuntime.InvokeAsync<string>("DayJsInterop.durationHumanize", cancellationToken, duration.TotalMilliseconds, withoutSuffix);
-    }
-
-    public async ValueTask<string> Until(DateTimeOffset value, string format, string? timezone = null, bool clampToZero = true, CancellationToken cancellationToken = default)
-    {
-        await EnsureInitialized(cancellationToken);
-        return await _jsRuntime.InvokeAsync<string>("DayJsInterop.until", cancellationToken, value, format, timezone, clampToZero);
-    }
-
-    public async ValueTask<DayJsSubscription> SubscribeNow(
-        string format,
-        string? timezone,
-        TimeSpan updateInterval,
-        Action<string> onUpdate,
-        CancellationToken cancellationToken = default)
-    {
-        await EnsureInitialized(cancellationToken);
-        var callback = new DayJsUpdateCallback(onUpdate);
-        var dotNetRef = DotNetObjectReference.Create(callback);
-
-        var id = await _jsRuntime.InvokeAsync<long>(
-            "DayJsInterop.subscribeNow",
-            cancellationToken,
-            format,
-            timezone,
-            updateInterval.TotalMilliseconds,
-            dotNetRef);
-
-        return new DayJsSubscription(_jsRuntime, id, dotNetRef);
     }
 
     public async ValueTask<DayJsSubscription> SubscribeRelative(
@@ -201,32 +155,6 @@ public sealed class DayJsInterop : IDayJsInterop
             updateInterval.TotalMilliseconds,
             withoutSuffix,
             timezone,
-            dotNetRef);
-
-        return new DayJsSubscription(_jsRuntime, id, dotNetRef);
-    }
-
-    public async ValueTask<DayJsSubscription> SubscribeUntil(
-        DateTimeOffset value,
-        string format,
-        TimeSpan updateInterval,
-        Action<string> onUpdate,
-        string? timezone = null,
-        bool clampToZero = true,
-        CancellationToken cancellationToken = default)
-    {
-        await EnsureInitialized(cancellationToken);
-        var callback = new DayJsUpdateCallback(onUpdate);
-        var dotNetRef = DotNetObjectReference.Create(callback);
-
-        var id = await _jsRuntime.InvokeAsync<long>(
-            "DayJsInterop.subscribeUntil",
-            cancellationToken,
-            value,
-            format,
-            updateInterval.TotalMilliseconds,
-            timezone,
-            clampToZero,
             dotNetRef);
 
         return new DayJsSubscription(_jsRuntime, id, dotNetRef);
