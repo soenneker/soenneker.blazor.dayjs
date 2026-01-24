@@ -10,7 +10,10 @@ public static class DayJsIntervalParser
         if (string.IsNullOrWhiteSpace(value))
             return fallback;
 
-        var trimmed = value.Trim();
+        ReadOnlySpan<char> trimmed = value.AsSpan().Trim();
+
+        if (trimmed.IsEmpty)
+            return fallback;
 
         if (TimeSpan.TryParse(trimmed, CultureInfo.InvariantCulture, out var parsed))
             return Normalize(parsed, fallback);
@@ -29,27 +32,25 @@ public static class DayJsIntervalParser
         return value;
     }
 
-    private static bool TryParseWithUnit(string value, out TimeSpan result)
+    private static bool TryParseWithUnit(ReadOnlySpan<char> value, out TimeSpan result)
     {
         result = default;
 
-        var lower = value.ToLowerInvariant();
+        ReadOnlySpan<char> numberPart;
+        char unit;
 
-        string numberPart;
-        string unit;
-
-        if (lower.EndsWith("ms", StringComparison.Ordinal))
+        if (value.EndsWith("ms", StringComparison.OrdinalIgnoreCase))
         {
-            numberPart = lower[..^2];
-            unit = "ms";
+            numberPart = value[..^2];
+            unit = 'M';
         }
         else
         {
-            if (lower.Length < 2)
+            if (value.Length < 2)
                 return false;
 
-            numberPart = lower[..^1];
-            unit = lower[^1].ToString();
+            numberPart = value[..^1];
+            unit = value[^1];
         }
 
         if (!double.TryParse(numberPart, NumberStyles.Float, CultureInfo.InvariantCulture, out var number))
@@ -60,11 +61,11 @@ public static class DayJsIntervalParser
 
         result = unit switch
         {
-            "ms" => TimeSpan.FromMilliseconds(number),
-            "s" => TimeSpan.FromSeconds(number),
-            "m" => TimeSpan.FromMinutes(number),
-            "h" => TimeSpan.FromHours(number),
-            "d" => TimeSpan.FromDays(number),
+            'M' => TimeSpan.FromMilliseconds(number),
+            's' or 'S' => TimeSpan.FromSeconds(number),
+            'm' => TimeSpan.FromMinutes(number),
+            'h' or 'H' => TimeSpan.FromHours(number),
+            'd' or 'D' => TimeSpan.FromDays(number),
             _ => default
         };
 

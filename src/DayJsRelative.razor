@@ -22,28 +22,32 @@
 
     private string? _value;
     private DayJsSubscription? _subscription;
-    private string? _subscriptionKey;
+    private DayJsSubscriptionKey _subscriptionKey;
+    private bool _hasSubscriptionKey;
 
     protected override async Task OnParametersSetAsync()
     {
-        var key = $"{Value.ToUnixTimeMilliseconds()}|{UpdateInterval}|{WithoutSuffix}|{Timezone}|{AutomaticUpdate}";
+        var key = new DayJsSubscriptionKey(Value.ToUnixTimeMilliseconds(), string.Empty, UpdateInterval, Timezone, WithoutSuffix, false, AutomaticUpdate);
 
-        if (key == _subscriptionKey && _subscription is not null)
+        if (_hasSubscriptionKey && _subscription is not null && _subscriptionKey.Equals(key))
             return;
 
         _subscriptionKey = key;
+        _hasSubscriptionKey = true;
         await Resubscribe();
     }
 
     private async Task Resubscribe()
     {
+        var token = CancellationToken;
+
         if (_subscription is not null)
             await _subscription.DisposeAsync();
 
         if (!AutomaticUpdate)
         {
             _subscription = null;
-            _value = await DayJsInterop.FromNow(Value, WithoutSuffix, Timezone);
+            _value = await DayJsInterop.FromNow(Value, WithoutSuffix, Timezone, token);
             _ = InvokeAsync(StateHasChanged);
             return;
         }
@@ -59,14 +63,17 @@
                 _ = InvokeAsync(StateHasChanged);
             },
             WithoutSuffix,
-            Timezone);
+            Timezone,
+            token);
     }
 
     public override async ValueTask DisposeAsync()
     {
-        await base.DisposeAsync();
-
         if (_subscription is not null)
             await _subscription.DisposeAsync();
+
+        await base.DisposeAsync();
     }
+
+
 }

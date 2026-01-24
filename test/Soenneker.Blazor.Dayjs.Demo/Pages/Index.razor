@@ -10,61 +10,135 @@
 
 @implements IAsyncDisposable
 
-<img src="https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png" />
-<h1>Soenneker.Blazor.Dayjs demo</h1>
-<p>This page demonstrates some of the common usages for the interop library.</p>
-<br />
+<div class="page">
+    <header class="hero">
+        <div class="hero-content">
+            <img class="hero-logo" src="https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png" />
+            <div class="hero-text">
+                <p class="eyebrow">Soenneker.Blazor.Dayjs</p>
+                <h1>Visually rich time utilities</h1>
+                <p class="subtitle">Live-updating time, timezones, relative strings, and durations with zero C# timers.</p>
+                <div class="hero-actions">
+                    <span class="pill">Live updates</span>
+                    <span class="pill">Timezone aware</span>
+                    <span class="pill">Lightweight interop</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-glow"></div>
+    </header>
 
-<hr />
+    <section class="stat-row">
+        <div class="stat">
+            <span class="stat-label">Init</span>
+            <span class="stat-value">CDN + plugins</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label">Update interval</span>
+            <span class="stat-value">1s - 30s</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label">Interop</span>
+            <span class="stat-value">JS-first</span>
+        </div>
+    </section>
 
-<h2>Live relative time</h2>
-<p>Updates automatically with no C# timers.</p>
-<div>
-    <strong>Created:</strong>
-    <DayJsRelative Value="CreatedAt" UpdateInterval="10s" />
-    <span>(live)</span>
-</div>
-<div>
-    <strong>LiveFromNow:</strong>
-    <LiveFromNow Value="CreatedAt" />
-</div>
+    <section class="grid">
+        <article class="card">
+            <div class="card-header">
+                <h2>Live relative time</h2>
+                <span class="tag">Auto</span>
+            </div>
+            <p>Updates automatically with no C# timers.</p>
+            <div class="card-body">
+                <div class="kv">
+                    <strong>Created</strong>
+                    <div class="value">
+                        <DayJsRelative Value="CreatedAt" UpdateInterval="10s" />
+                        <span class="hint">(live)</span>
+                    </div>
+                </div>
+                <div class="kv">
+                    <strong>Last updated</strong>
+                    <div class="value">
+                        <DayJsRelative Value="CreatedAt" UpdateInterval="30s" />
+                    </div>
+                </div>
+            </div>
+        </article>
 
-<hr />
+        <article class="card">
+            <div class="card-header">
+                <h2>Live clock</h2>
+                <span class="tag">Realtime</span>
+            </div>
+            <p>High-frequency clocks with timezone support.</p>
+            <div class="card-body">
+                <div class="kv">
+                    <strong>Local time</strong>
+                    <div class="value">
+                        <DayJsNow Format="HH:mm:ss" UpdateInterval="1s" />
+                    </div>
+                </div>
+                <div class="kv">
+                    <strong>Chicago</strong>
+                    <div class="value">
+                        <DayJsNow Format="HH:mm:ss" Timezone="America/Chicago" UpdateInterval="1s" />
+                    </div>
+                </div>
+            </div>
+        </article>
 
-<h2>Live clock</h2>
-<div>
-    <strong>Local time:</strong>
-    <DayJsNow Format="HH:mm:ss" UpdateInterval="1s" />
-</div>
-<div>
-    <strong>Chicago:</strong>
-    <DayJsNow Format="HH:mm:ss" Timezone="America/Chicago" UpdateInterval="1s" />
-</div>
+        <article class="card">
+            <div class="card-header">
+                <h2>Countdown</h2>
+                <span class="tag">Event</span>
+            </div>
+            <p>Keep users anchored on what is next.</p>
+            <div class="card-body">
+                <div class="kv">
+                    <strong>Launch in</strong>
+                    <div class="value big">
+                        <DayJsUntil Value="LaunchTime" Format="mm:ss" UpdateInterval="1s" />
+                    </div>
+                </div>
+            </div>
+        </article>
 
-<hr />
+        <article class="card">
+            <div class="card-header">
+                <h2>Manual subscription</h2>
+                <span class="tag">Push</span>
+            </div>
+            <p>Subscribe once, receive updates from JS.</p>
+            <div class="card-body">
+                <div class="kv">
+                    <strong>Manual relative</strong>
+                    <div class="value">
+                        @_manualRelative
+                    </div>
+                </div>
+            </div>
+        </article>
 
-<h2>Countdown</h2>
-<div>
-    <strong>Launch in:</strong>
-    <DayJsUntil Value="LaunchTime" Format="mm:ss" UpdateInterval="1s" />
-</div>
-
-<hr />
-
-<h2>Manual subscription</h2>
-<p>Subscribe once, receive updates from JS.</p>
-<div>
-    <strong>Manual relative:</strong> @_manualRelative
-</div>
-
-<hr />
-
-<h2>One-off formatting</h2>
-<div>
-    <strong>Formatted:</strong> @_formattedNow
-</div>
-<div>
-    <strong>Duration:</strong> @_humanizedDuration
+        <article class="card wide">
+            <div class="card-header">
+                <h2>One-off formatting</h2>
+                <span class="tag">Format</span>
+            </div>
+            <p>Format timestamps and durations on demand.</p>
+            <div class="card-body">
+                <div class="kv">
+                    <strong>Formatted</strong>
+                    <div class="value mono">@_formattedNow</div>
+                </div>
+                <div class="kv">
+                    <strong>Duration</strong>
+                    <div class="value">@_humanizedDuration</div>
+                </div>
+            </div>
+        </article>
+    </section>
 </div>
 
 @code{
