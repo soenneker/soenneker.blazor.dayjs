@@ -2,89 +2,84 @@
 [![](https://img.shields.io/github/actions/workflow/status/soenneker/soenneker.blazor.dayjs/publish-package.yml?style=for-the-badge)](https://github.com/soenneker/soenneker.blazor.dayjs/actions/workflows/publish-package.yml)
 [![](https://img.shields.io/nuget/dt/soenneker.blazor.dayjs.svg?style=for-the-badge)](https://www.nuget.org/packages/soenneker.blazor.dayjs/)
 
-# ![](https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png) Soenneker.Blazor.Dayjs
-### A Blazor interop library for Day.js
+# Soenneker.Blazor.Dayjs
+### Blazor interop for Day.js
+
+A lightweight Blazor interop library for [Day.js](https://day.js.org/) focused on **live, auto-updating time displays**.
+
+---
 
 ## Installation
 
-```
+```bash
 dotnet add package Soenneker.Blazor.Dayjs
-```
+````
+
+---
 
 ## Setup
 
-Day.js core is loaded automatically via CDN by default. Plugins are only loaded when enabled via options.
-If you want to self-host, place the scripts at:
-
-```
-_content/Soenneker.Blazor.Dayjs/js/dayjs.min.js
-_content/Soenneker.Blazor.Dayjs/js/utc.js
-_content/Soenneker.Blazor.Dayjs/js/timezone.js
-_content/Soenneker.Blazor.Dayjs/js/relativeTime.js
-_content/Soenneker.Blazor.Dayjs/js/duration.js
-```
-
 Register the service:
 
-```
+```csharp
 builder.Services.AddDayJsInteropAsScoped();
 ```
 
 Add a using:
 
-```
+```razor
 @using Soenneker.Blazor.Dayjs
 ```
 
-Optional init to control CDN usage:
-
-```
-@inject IDayJsInterop DayJsInterop
-
-await DayJsInterop.Initialize(useCdn: true);
-```
-
-Enable plugins explicitly:
-
-```
-@using Soenneker.Blazor.Dayjs.Configuration
-@inject IDayJsInterop DayJsInterop
-
-await DayJsInterop.Initialize(new DayJsOptions
-{
-    UseCdn = true,
-    LoadRelativeTime = true,
-    LoadTimezone = true,
-    LoadUtc = true,
-    LoadDuration = true
-});
-```
+---
 
 ## Components
 
-Live relative time:
+### Live relative time
 
-```
+```razor
 <DayJsRelative Value="CreatedAt" UpdateInterval="1m" />
 ```
 
-Live clock (uses .NET format strings):
+---
 
-```
+### Live clock
+
+Uses .NET date/time format strings.
+
+```razor
 <DayJsNow Format="HH:mm:ss" UpdateInterval="1s" />
 ```
 
-Countdown (uses .NET `TimeSpan` formats):
+---
 
-```
+### Countdown / time until
+
+Uses .NET `TimeSpan` format strings.
+
+```razor
 <DayJsUntil Value="LaunchTime" Format="mm:ss" UpdateInterval="1s" />
 ```
 
-## Manual subscriptions
+---
 
+## Configuration
+
+Day.js plugins are loaded explicitly.
+
+```razor
+@using Soenneker.Blazor.Dayjs.Configuration
+@inject IDayJsInterop DayJsInterop
 ```
-await using var sub = await DayJsInterop.SubscribeRelative(
-    value: CreatedAt,
-    updateInterval: TimeSpan.FromSeconds(30),
-    onUpdate: text => Console.WriteLine(text));
+
+```csharp
+await DayJsInterop.Initialize(new DayJsOptions
+{
+    UseCdn = true,
+
+    LoadRelativeTime = true,
+    LoadTimezone     = true,
+    LoadUtc          = true,
+    LoadDuration     = true
+});
 ```
