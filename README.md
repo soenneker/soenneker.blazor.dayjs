@@ -1,6 +1,7 @@
 [![](https://img.shields.io/nuget/v/soenneker.blazor.dayjs.svg?style=for-the-badge)](https://www.nuget.org/packages/soenneker.blazor.dayjs/)
 [![](https://img.shields.io/github/actions/workflow/status/soenneker/soenneker.blazor.dayjs/publish-package.yml?style=for-the-badge)](https://github.com/soenneker/soenneker.blazor.dayjs/actions/workflows/publish-package.yml)
 [![](https://img.shields.io/nuget/dt/soenneker.blazor.dayjs.svg?style=for-the-badge)](https://www.nuget.org/packages/soenneker.blazor.dayjs/)
+[![](https://img.shields.io/badge/Demo-Live-blueviolet?style=for-the-badge&logo=github)](https://soenneker.github.io/soenneker.blazor.dayjs)
 
 # Soenneker.Blazor.Dayjs
 ### Blazor interop for Day.js
