@@ -146,3 +146,5 @@ jobs:
         with:
           path: test/Soenneker.Blazor.Dayjs.Demo/bin/Release/net10.0/publish/wwwroot
 
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
