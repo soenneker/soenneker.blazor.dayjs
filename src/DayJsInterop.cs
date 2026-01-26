@@ -7,6 +7,8 @@ using Soenneker.Blazor.Dayjs.Abstract;
 using Soenneker.Blazor.Dayjs.Configuration;
 using Soenneker.Blazor.Dayjs.Dtos;
 using Soenneker.Blazor.Utils.ResourceLoader.Abstract;
+using Soenneker.Extensions.CancellationTokens;
+using Soenneker.Utils.CancellationScopes;
 
 namespace Soenneker.Blazor.Dayjs;
 
@@ -22,6 +24,8 @@ public sealed class DayJsInterop : IDayJsInterop
 
     private readonly IJSRuntime _jsRuntime;
 
+    private readonly CancellationScope _cancellationScope = new();
+
     public DayJsInterop(IJSRuntime jsRuntime, IResourceLoader resourceLoader)
     {
         _jsRuntime = jsRuntime;
@@ -32,18 +36,29 @@ public sealed class DayJsInterop : IDayJsInterop
     public ValueTask Initialize(bool useCdn = true, CancellationToken cancellationToken = default)
     {
         _options = new DayJsOptions { UseCdn = useCdn };
-        return _scriptInitializer.Init(_options, cancellationToken);
+
+        var linked = _cancellationScope.CancellationToken.Link(cancellationToken, out var source);
+
+        using (source)
+            return _scriptInitializer.Init(_options, linked);
     }
 
     public ValueTask Initialize(DayJsOptions options, CancellationToken cancellationToken = default)
     {
         _options = options ?? new DayJsOptions();
-        return _scriptInitializer.Init(_options, cancellationToken);
+
+        var linked = _cancellationScope.CancellationToken.Link(cancellationToken, out var source);
+
+        using (source)
+            return _scriptInitializer.Init(_options, linked);
     }
 
     private ValueTask EnsureInitialized(CancellationToken cancellationToken)
     {
-        return _scriptInitializer.Init(_options, cancellationToken);
+        var linked = _cancellationScope.CancellationToken.Link(cancellationToken, out var source);
+
+        using (source)
+            return _scriptInitializer.Init(_options, linked);
     }
 
     private async ValueTask InitializeScript(DayJsOptions options, CancellationToken token)
@@ -96,44 +111,88 @@ public sealed class DayJsInterop : IDayJsInterop
                     crossOrigin: "anonymous",
                     cancellationToken: token);
             }
-            else
-            {
-                await _resourceLoader.LoadScriptAndWaitForVariable("_content/Soenneker.Blazor.Dayjs/js/dayjs.min.js", "dayjs", cancellationToken: token);
+        }
+        else
+        {
+            await _resourceLoader.LoadScriptAndWaitForVariable(
+                "_content/Soenneker.Blazor.Dayjs/js/dayjs.min.js",
+                "dayjs",
+                cancellationToken: token);
 
-                if (options.LoadUtc)
-                    await _resourceLoader.LoadScriptAndWaitForVariable("_content/Soenneker.Blazor.Dayjs/js/utc.js", "dayjs_plugin_utc", cancellationToken: token);
+            if (options.LoadUtc)
+                await _resourceLoader.LoadScriptAndWaitForVariable(
+                    "_content/Soenneker.Blazor.Dayjs/js/utc.js",
+                    "dayjs_plugin_utc",
+                    cancellationToken: token);
 
-                if (options.LoadTimezone)
-                    await _resourceLoader.LoadScriptAndWaitForVariable("_content/Soenneker.Blazor.Dayjs/js/timezone.js", "dayjs_plugin_timezone", cancellationToken: token);
+            if (options.LoadTimezone)
+                await _resourceLoader.LoadScriptAndWaitForVariable(
+                    "_content/Soenneker.Blazor.Dayjs/js/timezone.js",
+                    "dayjs_plugin_timezone",
+                    cancellationToken: token);
 
-                if (options.LoadRelativeTime)
-                    await _resourceLoader.LoadScriptAndWaitForVariable("_content/Soenneker.Blazor.Dayjs/js/relativeTime.js", "dayjs_plugin_relativeTime", cancellationToken: token);
+            if (options.LoadRelativeTime)
+                await _resourceLoader.LoadScriptAndWaitForVariable(
+                    "_content/Soenneker.Blazor.Dayjs/js/relativeTime.js",
+                    "dayjs_plugin_relativeTime",
+                    cancellationToken: token);
 
-                if (options.LoadDuration)
-                    await _resourceLoader.LoadScriptAndWaitForVariable("_content/Soenneker.Blazor.Dayjs/js/duration.js", "dayjs_plugin_duration", cancellationToken: token);
-            }
+            if (options.LoadDuration)
+                await _resourceLoader.LoadScriptAndWaitForVariable(
+                    "_content/Soenneker.Blazor.Dayjs/js/duration.js",
+                    "dayjs_plugin_duration",
+                    cancellationToken: token);
+        }
 
-            await _resourceLoader.ImportModuleAndWaitUntilAvailable(_module, _moduleName, 100, token);
+        await _resourceLoader.ImportModuleAndWaitUntilAvailable(_module, _moduleName, 100, token);
+    }
+
+    public async ValueTask<string> FromNow(
+        DateTimeOffset value,
+        bool withoutSuffix = false,
+        string? timezone = null,
+        CancellationToken cancellationToken = default)
+    {
+        var linked = _cancellationScope.CancellationToken.Link(cancellationToken, out var source);
+
+        using (source)
+        {
+            await EnsureInitialized(linked);
+            return await _jsRuntime.InvokeAsync<string>("DayJsInterop.fromNow", linked, value, withoutSuffix, timezone);
         }
     }
 
-
-    public async ValueTask<string> FromNow(DateTimeOffset value, bool withoutSuffix = false, string? timezone = null, CancellationToken cancellationToken = default)
+    public async ValueTask<string> ToNow(
+        DateTimeOffset value,
+        bool withoutSuffix = false,
+        string? timezone = null,
+        CancellationToken cancellationToken = default)
     {
-        await EnsureInitialized(cancellationToken);
-        return await _jsRuntime.InvokeAsync<string>("DayJsInterop.fromNow", cancellationToken, value, withoutSuffix, timezone);
+        var linked = _cancellationScope.CancellationToken.Link(cancellationToken, out var source);
+
+        using (source)
+        {
+            await EnsureInitialized(linked);
+            return await _jsRuntime.InvokeAsync<string>("DayJsInterop.toNow", linked, value, withoutSuffix, timezone);
+        }
     }
 
-    public async ValueTask<string> ToNow(DateTimeOffset value, bool withoutSuffix = false, string? timezone = null, CancellationToken cancellationToken = default)
+    public async ValueTask<string> DurationHumanize(
+        TimeSpan duration,
+        bool withoutSuffix = false,
+        CancellationToken cancellationToken = default)
     {
-        await EnsureInitialized(cancellationToken);
-        return await _jsRuntime.InvokeAsync<string>("DayJsInterop.toNow", cancellationToken, value, withoutSuffix, timezone);
-    }
+        var linked = _cancellationScope.CancellationToken.Link(cancellationToken, out var source);
 
-    public async ValueTask<string> DurationHumanize(TimeSpan duration, bool withoutSuffix = false, CancellationToken cancellationToken = default)
-    {
-        await EnsureInitialized(cancellationToken);
-        return await _jsRuntime.InvokeAsync<string>("DayJsInterop.durationHumanize", cancellationToken, duration.TotalMilliseconds, withoutSuffix);
+        using (source)
+        {
+            await EnsureInitialized(linked);
+            return await _jsRuntime.InvokeAsync<string>(
+                "DayJsInterop.durationHumanize",
+                linked,
+                duration.TotalMilliseconds,
+                withoutSuffix);
+        }
     }
 
     public async ValueTask<DayJsSubscription> SubscribeRelative(
@@ -144,25 +203,32 @@ public sealed class DayJsInterop : IDayJsInterop
         string? timezone = null,
         CancellationToken cancellationToken = default)
     {
-        await EnsureInitialized(cancellationToken);
-        var callback = new DayJsUpdateCallback(onUpdate);
-        var dotNetRef = DotNetObjectReference.Create(callback);
+        var linked = _cancellationScope.CancellationToken.Link(cancellationToken, out var source);
 
-        var id = await _jsRuntime.InvokeAsync<long>(
-            "DayJsInterop.subscribeRelative",
-            cancellationToken,
-            value,
-            updateInterval.TotalMilliseconds,
-            withoutSuffix,
-            timezone,
-            dotNetRef);
+        using (source)
+        {
+            await EnsureInitialized(linked);
 
-        return new DayJsSubscription(_jsRuntime, id, dotNetRef);
+            var callback = new DayJsUpdateCallback(onUpdate);
+            var dotNetRef = DotNetObjectReference.Create(callback);
+
+            var id = await _jsRuntime.InvokeAsync<long>(
+                "DayJsInterop.subscribeRelative",
+                linked,
+                value,
+                updateInterval.TotalMilliseconds,
+                withoutSuffix,
+                timezone,
+                dotNetRef);
+
+            return new DayJsSubscription(_jsRuntime, id, dotNetRef);
+        }
     }
 
     public async ValueTask DisposeAsync()
     {
         await _resourceLoader.DisposeModule(_module);
         await _scriptInitializer.DisposeAsync();
+        await _cancellationScope.DisposeAsync();
     }
 }
