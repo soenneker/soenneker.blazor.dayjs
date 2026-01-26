@@ -43,13 +43,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.2" />
-        <PackageReference Include="Soenneker.Asyncs.Initializers" Version="4.0.15" />
         <PackageReference Include="Soenneker.Blazor.Utils.ResourceLoader" Version="4.0.1578" />
         <PackageReference Include="Soenneker.Quark.Components.Core.Cancellable" Version="4.0.37" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Abstract\" />
     </ItemGroup>
 </Project>
