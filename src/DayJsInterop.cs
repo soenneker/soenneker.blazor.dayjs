@@ -33,32 +33,32 @@ public sealed class DayJsInterop : IDayJsInterop
         _scriptInitializer = new AsyncInitializer<DayJsOptions>(InitializeScript);
     }
 
-    public ValueTask Initialize(bool useCdn = true, CancellationToken cancellationToken = default)
+    public async ValueTask Initialize(bool useCdn = true, CancellationToken cancellationToken = default)
     {
         _options = new DayJsOptions { UseCdn = useCdn };
 
         var linked = _cancellationScope.CancellationToken.Link(cancellationToken, out var source);
 
         using (source)
-            return _scriptInitializer.Init(_options, linked);
+            await _scriptInitializer.Init(_options, linked);
     }
 
-    public ValueTask Initialize(DayJsOptions options, CancellationToken cancellationToken = default)
+    public async ValueTask Initialize(DayJsOptions options, CancellationToken cancellationToken = default)
     {
         _options = options ?? new DayJsOptions();
 
         var linked = _cancellationScope.CancellationToken.Link(cancellationToken, out var source);
 
         using (source)
-            return _scriptInitializer.Init(_options, linked);
+            await _scriptInitializer.Init(_options, linked);
     }
 
-    private ValueTask EnsureInitialized(CancellationToken cancellationToken)
+    private async ValueTask EnsureInitialized(CancellationToken cancellationToken)
     {
         var linked = _cancellationScope.CancellationToken.Link(cancellationToken, out var source);
 
         using (source)
-            return _scriptInitializer.Init(_options, linked);
+            await _scriptInitializer.Init(_options, linked);
     }
 
     private async ValueTask InitializeScript(DayJsOptions options, CancellationToken token)
