@@ -20,7 +20,6 @@ public sealed class DayJsInterop : IDayJsInterop
     private DayJsOptions _options = new();
 
     private const string _module = "Soenneker.Blazor.Dayjs/js/dayjsinterop.js";
-    private const string _moduleName = "DayJsInterop";
 
     private readonly IJSRuntime _jsRuntime;
 
@@ -37,7 +36,7 @@ public sealed class DayJsInterop : IDayJsInterop
     {
         _options = new DayJsOptions { UseCdn = useCdn };
 
-        var linked = _cancellationScope.CancellationToken.Link(cancellationToken, out var source);
+        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
 
         using (source)
             await _scriptInitializer.Init(_options, linked);
@@ -47,7 +46,7 @@ public sealed class DayJsInterop : IDayJsInterop
     {
         _options = options ?? new DayJsOptions();
 
-        var linked = _cancellationScope.CancellationToken.Link(cancellationToken, out var source);
+        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
 
         using (source)
             await _scriptInitializer.Init(_options, linked);
@@ -55,7 +54,7 @@ public sealed class DayJsInterop : IDayJsInterop
 
     private async ValueTask EnsureInitialized(CancellationToken cancellationToken)
     {
-        var linked = _cancellationScope.CancellationToken.Link(cancellationToken, out var source);
+        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
 
         using (source)
             await _scriptInitializer.Init(_options, linked);
@@ -153,7 +152,7 @@ public sealed class DayJsInterop : IDayJsInterop
         string? timezone = null,
         CancellationToken cancellationToken = default)
     {
-        var linked = _cancellationScope.CancellationToken.Link(cancellationToken, out var source);
+        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
 
         using (source)
         {
@@ -168,7 +167,7 @@ public sealed class DayJsInterop : IDayJsInterop
         string? timezone = null,
         CancellationToken cancellationToken = default)
     {
-        var linked = _cancellationScope.CancellationToken.Link(cancellationToken, out var source);
+        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
 
         using (source)
         {
@@ -182,7 +181,7 @@ public sealed class DayJsInterop : IDayJsInterop
         bool withoutSuffix = false,
         CancellationToken cancellationToken = default)
     {
-        var linked = _cancellationScope.CancellationToken.Link(cancellationToken, out var source);
+        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
 
         using (source)
         {
@@ -203,14 +202,14 @@ public sealed class DayJsInterop : IDayJsInterop
         string? timezone = null,
         CancellationToken cancellationToken = default)
     {
-        var linked = _cancellationScope.CancellationToken.Link(cancellationToken, out var source);
+        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
 
         using (source)
         {
             await EnsureInitialized(linked);
 
             var callback = new DayJsUpdateCallback(onUpdate);
-            var dotNetRef = DotNetObjectReference.Create(callback);
+            DotNetObjectReference<DayJsUpdateCallback> dotNetRef = DotNetObjectReference.Create(callback);
 
             var id = await _jsRuntime.InvokeAsync<long>(
                 "DayJsInterop.subscribeRelative",

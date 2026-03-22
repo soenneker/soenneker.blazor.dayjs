@@ -1,9 +1,7 @@
 @namespace Soenneker.Blazor.Dayjs
-@using System
 @using System.Globalization
 @using System.Text
 @using System.Threading
-@using System.Threading.Tasks
 @using Soenneker.Blazor.Dayjs.Utils
 @using Soenneker.Quark
 
@@ -49,7 +47,7 @@
             return;
         }
 
-        var interval = DayJsIntervalParser.ParseOrDefault(UpdateInterval, TimeSpan.FromSeconds(1));
+        TimeSpan interval = DayJsIntervalParser.ParseOrDefault(UpdateInterval, TimeSpan.FromSeconds(1));
         _value = FormatRemaining();
         _ = InvokeAsync(StateHasChanged);
         _ = RunLoop(interval, CancellationToken);
@@ -74,13 +72,13 @@
 
     private string FormatRemaining()
     {
-        var now = GetNow();
-        var remaining = Value - now;
+        DateTimeOffset now = GetNow();
+        TimeSpan remaining = Value - now;
 
         if (ClampToZero && remaining < TimeSpan.Zero)
             remaining = TimeSpan.Zero;
 
-        var format = EscapeTimeSpanFormat(Format);
+        string format = EscapeTimeSpanFormat(Format);
         return remaining.ToString(format, CultureInfo.InvariantCulture);
     }
 

@@ -15,10 +15,10 @@ public static class DayJsIntervalParser
         if (trimmed.IsEmpty)
             return fallback;
 
-        if (TimeSpan.TryParse(trimmed, CultureInfo.InvariantCulture, out var parsed))
+        if (TimeSpan.TryParse(trimmed, CultureInfo.InvariantCulture, out TimeSpan parsed))
             return Normalize(parsed, fallback);
 
-        if (TryParseWithUnit(trimmed, out var withUnit))
+        if (TryParseWithUnit(trimmed, out TimeSpan withUnit))
             return Normalize(withUnit, fallback);
 
         return fallback;
@@ -53,7 +53,7 @@ public static class DayJsIntervalParser
             unit = value[^1];
         }
 
-        if (!double.TryParse(numberPart, NumberStyles.Float, CultureInfo.InvariantCulture, out var number))
+        if (!double.TryParse(numberPart, NumberStyles.Float, CultureInfo.InvariantCulture, out double number))
             return false;
 
         if (number <= 0)

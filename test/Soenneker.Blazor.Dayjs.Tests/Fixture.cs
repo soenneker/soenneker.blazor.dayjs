@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using Soenneker.Blazor.Dayjs.Registrars;
 using Soenneker.Fixtures.Unit;
 using Soenneker.Utils.Test;
 using Soenneker.Blazor.MockJsRuntime.Registrars;
-using Soenneker.Blazor.Dayjs.Registrars;
 
 namespace Soenneker.Blazor.Dayjs.Tests;
 

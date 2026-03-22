@@ -1,5 +1,5 @@
 @namespace Soenneker.Blazor.Dayjs
-@using System
+@using System.Threading
 @using Soenneker.Blazor.Dayjs.Abstract
 @using Soenneker.Blazor.Dayjs.Dtos
 @using Soenneker.Blazor.Dayjs.Utils
@@ -14,11 +14,21 @@
 }
 
 @code {
-    [Parameter] public DateTimeOffset Value { get; set; }
-    [Parameter] public string? UpdateInterval { get; set; } = "1m";
-    [Parameter] public bool WithoutSuffix { get; set; }
-    [Parameter] public string? Timezone { get; set; }
-    [Parameter] public bool AutomaticUpdate { get; set; } = true;
+
+    [Parameter]
+    public DateTimeOffset Value { get; set; }
+
+    [Parameter]
+    public string? UpdateInterval { get; set; } = "1m";
+
+    [Parameter]
+    public bool WithoutSuffix { get; set; }
+
+    [Parameter]
+    public string? Timezone { get; set; }
+
+    [Parameter]
+    public bool AutomaticUpdate { get; set; } = true;
 
     private string? _value;
     private DayJsSubscription? _subscription;
@@ -39,7 +49,7 @@
 
     private async Task Resubscribe()
     {
-        var token = CancellationToken;
+        CancellationToken token = CancellationToken;
 
         if (_subscription is not null)
             await _subscription.DisposeAsync();
@@ -52,19 +62,13 @@
             return;
         }
 
-        var interval = DayJsIntervalParser.ParseOrDefault(UpdateInterval, TimeSpan.FromMinutes(1));
+        TimeSpan interval = DayJsIntervalParser.ParseOrDefault(UpdateInterval, TimeSpan.FromMinutes(1));
 
-        _subscription = await DayJsInterop.SubscribeRelative(
-            Value,
-            interval,
-            value =>
-            {
-                _value = value;
-                _ = InvokeAsync(StateHasChanged);
-            },
-            WithoutSuffix,
-            Timezone,
-            token);
+        _subscription = await DayJsInterop.SubscribeRelative(Value, interval, value =>
+        {
+            _value = value;
+            _ = InvokeAsync(StateHasChanged);
+        }, WithoutSuffix, Timezone, token);
     }
 
     public override async ValueTask DisposeAsync()

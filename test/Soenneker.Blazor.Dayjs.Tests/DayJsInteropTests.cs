@@ -1,9 +1,8 @@
 ﻿using Soenneker.Blazor.Dayjs.Abstract;
-using Soenneker.Blazor.Dayjs.Tests;
 using Soenneker.Tests.FixturedUnit;
 using Xunit;
 
-namespace Soenneker.Blazor.TomSelect.Tests;
+namespace Soenneker.Blazor.Dayjs.Tests;
 
 [Collection("Collection")]
 public class TomSelectInteropTests : FixturedUnitTest
