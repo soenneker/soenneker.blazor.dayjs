@@ -144,7 +144,7 @@ public sealed class DayJsInterop : IDayJsInterop
                     cancellationToken: token);
         }
 
-        await _resourceLoader.ImportModuleAndWaitUntilAvailable(_module, _moduleName, 100, token);
+        await _resourceLoader.ImportModule(_module, token);
     }
 
     public async ValueTask<string> FromNow(
