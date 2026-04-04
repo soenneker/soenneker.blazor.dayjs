@@ -1,137 +1,56 @@
 @page "/"
-@using Microsoft.Extensions.Logging
 @using Soenneker.Blazor.Dayjs.Abstract
 @using Soenneker.Blazor.Dayjs
 @using Soenneker.Blazor.Dayjs.Configuration
 @using Soenneker.Blazor.Dayjs.Dtos
 
-@inject ILogger<Index> Logger
 @inject IDayJsInterop DayJsInterop
 
 @implements IAsyncDisposable
 
-<div class="page">
-    <header class="hero">
-        <div class="hero-content">
-            <img class="hero-logo" src="https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png" />
-            <div class="hero-text">
-                <p class="eyebrow">Soenneker.Blazor.Dayjs</p>
-                <h1>Visually rich time utilities</h1>
-                <p class="subtitle">Live-updating time, timezones, relative strings, and durations with zero C# timers.</p>
-                <div class="hero-actions">
-                    <span class="pill">Live updates</span>
-                    <span class="pill">Timezone aware</span>
-                    <span class="pill">Lightweight interop</span>
-                </div>
-            </div>
-        </div>
-        <div class="hero-glow"></div>
-    </header>
-
-    <section class="stat-row">
-        <div class="stat">
-            <span class="stat-label">Init</span>
-            <span class="stat-value">CDN + plugins</span>
-        </div>
-        <div class="stat">
-            <span class="stat-label">Update interval</span>
-            <span class="stat-value">1s - 30s</span>
-        </div>
-        <div class="stat">
-            <span class="stat-label">Interop</span>
-            <span class="stat-value">JS-first</span>
-        </div>
-    </section>
-
-    <section class="grid">
-        <article class="card">
-            <div class="card-header">
-                <h2>Live relative time</h2>
-                <span class="tag">Auto</span>
-            </div>
-            <p>Updates automatically with no C# timers.</p>
-            <div class="card-body">
-                <div class="kv">
-                    <strong>Created</strong>
-                    <div class="value">
+<Div Space="Space.Y.Is6">
+    <Grid Columns="Columns.Is1.OnMd.Is2" Gap="Gap.Is4">
+        <DemoPanel Title="Live relative time" Description="Updates from JavaScript without C# timers.">
+            <Div Space="Space.Y.Is2">
+                <Div>
+                    <Paragraph Margin="Margin.Is0" TextSize="TextSize.Sm" TextColor="TextColor.MutedForeground">Created</Paragraph>
+                    <Div Display="Display.Flex" Flex="Flex.Wrap" AlignUtility="Align.ItemsBaseline" Gap="Gap.Is2">
                         <DayJsRelative Value="CreatedAt" UpdateInterval="10s" />
-                        <span class="hint">(live)</span>
-                    </div>
-                </div>
-                <div class="kv">
-                    <strong>Last updated</strong>
-                    <div class="value">
-                        <DayJsRelative Value="CreatedAt" UpdateInterval="30s" />
-                    </div>
-                </div>
-            </div>
-        </article>
+                        <Span TextSize="TextSize.Sm" TextColor="TextColor.MutedForeground">(live)</Span>
+                    </Div>
+                </Div>
+                <Div>
+                    <Paragraph Margin="Margin.Is0" TextSize="TextSize.Sm" TextColor="TextColor.MutedForeground">Last updated</Paragraph>
+                    <DayJsRelative Value="CreatedAt" UpdateInterval="30s" />
+                </Div>
+            </Div>
+        </DemoPanel>
 
-        <article class="card">
-            <div class="card-header">
-                <h2>Live clock</h2>
-                <span class="tag">C#</span>
-            </div>
-            <p>Updates on a C# timer with .NET formats.</p>
-            <div class="card-body">
-                <div class="kv">
-                    <strong>Local time</strong>
-                    <div class="value">
-                        <DayJsNow Format="HH:mm:ss" UpdateInterval="1s" />
-                    </div>
-                </div>
-            </div>
-        </article>
+        <DemoPanel Title="Live clock" Description="C#-driven interval with .NET format string.">
+            <Paragraph Margin="Margin.Is0" TextSize="TextSize.Sm" TextColor="TextColor.MutedForeground">Local time</Paragraph>
+            <DayJsNow Format="HH:mm:ss" UpdateInterval="1s" />
+        </DemoPanel>
 
-        <article class="card">
-            <div class="card-header">
-                <h2>Countdown</h2>
-                <span class="tag">C#</span>
-            </div>
-            <p>Time remaining using a C# timer.</p>
-            <div class="card-body">
-                <div class="kv">
-                    <strong>Launch in</strong>
-                    <div class="value big">
-                        <DayJsUntil Value="LaunchTime" Format="mm:ss" UpdateInterval="1s" />
-                    </div>
-                </div>
-            </div>
-        </article>
+        <DemoPanel Title="Countdown" Description="Time remaining via C# timer.">
+            <Paragraph Margin="Margin.Is0" TextSize="TextSize.Sm" TextColor="TextColor.MutedForeground">Launch in</Paragraph>
+            <Div TextSize="TextSize.TwoXl" FontWeight="FontWeight.Semibold">
+                <DayJsUntil Value="LaunchTime" Format="mm:ss" UpdateInterval="1s" />
+            </Div>
+        </DemoPanel>
 
-        <article class="card">
-            <div class="card-header">
-                <h2>Manual subscription</h2>
-                <span class="tag">Push</span>
-            </div>
-            <p>Subscribe once, receive updates from JS.</p>
-            <div class="card-body">
-                <div class="kv">
-                    <strong>Manual relative</strong>
-                    <div class="value">
-                        @_manualRelative
-                    </div>
-                </div>
-            </div>
-        </article>
+        <DemoPanel Title="Manual subscription" Description="Subscribe once; JS pushes relative updates.">
+            <Paragraph Margin="Margin.Is0" TextSize="TextSize.Sm" TextColor="TextColor.MutedForeground">Manual relative</Paragraph>
+            <Paragraph Margin="Margin.Is0">@_manualRelative</Paragraph>
+        </DemoPanel>
+    </Grid>
 
-        <article class="card wide">
-            <div class="card-header">
-                <h2>Duration formatting</h2>
-                <span class="tag">Format</span>
-            </div>
-            <p>Humanize durations on demand.</p>
-            <div class="card-body">
-                <div class="kv">
-                    <strong>Duration</strong>
-                    <div class="value">@_humanizedDuration</div>
-                </div>
-            </div>
-        </article>
-    </section>
-</div>
+    <DemoPanel Title="Duration formatting" Description="Humanized duration from the interop layer.">
+        <Paragraph Margin="Margin.Is0" TextSize="TextSize.Sm" TextColor="TextColor.MutedForeground">Duration</Paragraph>
+        <Paragraph Margin="Margin.Is0">@_humanizedDuration</Paragraph>
+    </DemoPanel>
+</Div>
 
-@code{
+@code {
     private DayJsSubscription? _manualSubscription;
     private string _manualRelative = "loading...";
     private string _humanizedDuration = "loading...";
