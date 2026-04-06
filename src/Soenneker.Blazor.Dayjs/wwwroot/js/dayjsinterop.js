@@ -1,19 +1,6 @@
-export class DayJsInterop {
-    constructor() {
-        this.subscribers = new Map();
-        this.timerId = null;
-        this.baseIntervalMs = 1000;
-        this.nextId = 1;
-        this.initialized = false;
-        this.tick = this.tick.bind(this);
-        this.onVisibilityChange = this.onVisibilityChange.bind(this);
-
-        if (typeof document !== "undefined") {
-            document.addEventListener("visibilitychange", this.onVisibilityChange);
-        }
-    }
-
-    ensureDayJs() {
+const interop = (() => {
+    const instance = {};
+    instance.ensureDayJs = function() {
         const dayjs = window.dayjs;
 
         if (!dayjs) {
@@ -41,9 +28,9 @@ export class DayJsInterop {
         }
 
         return dayjs;
-    }
+    };
 
-    withTimezone(dayjsInstance, timezone) {
+    instance.withTimezone = function(dayjsInstance, timezone) {
         const dayjs = this.ensureDayJs();
 
         if (timezone && dayjs.tz) {
@@ -51,9 +38,9 @@ export class DayJsInterop {
         }
 
         return dayjsInstance;
-    }
+    };
 
-    getNow(timezone) {
+    instance.getNow = function(timezone) {
         const dayjs = this.ensureDayJs();
 
         if (timezone && dayjs.tz) {
@@ -61,9 +48,9 @@ export class DayJsInterop {
         }
 
         return dayjs();
-    }
+    };
 
-    normalizeInterval(intervalMs) {
+    instance.normalizeInterval = function(intervalMs) {
         const parsed = Number(intervalMs);
 
         if (!Number.isFinite(parsed) || parsed <= 0) {
@@ -71,9 +58,9 @@ export class DayJsInterop {
         }
 
         return Math.max(50, parsed);
-    }
+    };
 
-    recomputeBaseInterval() {
+    instance.recomputeBaseInterval = function() {
         let min = 1000;
 
         for (const sub of this.subscribers.values()) {
@@ -88,9 +75,9 @@ export class DayJsInterop {
             this.baseIntervalMs = min;
             this.restartTimer();
         }
-    }
+    };
 
-    restartTimer() {
+    instance.restartTimer = function() {
         if (this.timerId) {
             clearTimeout(this.timerId);
             this.timerId = null;
@@ -99,32 +86,32 @@ export class DayJsInterop {
         if (this.subscribers.size > 0) {
             this.scheduleNextTick();
         }
-    }
+    };
 
-    startTimer() {
+    instance.startTimer = function() {
         if (this.timerId) {
             return;
         }
 
         this.scheduleNextTick();
-    }
+    };
 
-    stopTimerIfIdle() {
+    instance.stopTimerIfIdle = function() {
         if (this.subscribers.size === 0 && this.timerId) {
             clearTimeout(this.timerId);
             this.timerId = null;
         }
-    }
+    };
 
-    safeUpdate(sub, value) {
+    instance.safeUpdate = function(sub, value) {
         try {
             sub.dotNetRef.invokeMethodAsync("OnUpdate", value);
         } catch (error) {
             console.error("Dayjs subscription update failed", error);
         }
-    }
+    };
 
-    computeValue(sub) {
+    instance.computeValue = function(sub) {
         const dayjs = this.ensureDayJs();
 
         switch (sub.type) {
@@ -136,14 +123,14 @@ export class DayJsInterop {
             default:
                 return "";
         }
-    }
+    };
 
-    publish(sub) {
+    instance.publish = function(sub) {
         const value = this.computeValue(sub);
         this.safeUpdate(sub, value);
-    }
+    };
 
-    scheduleNextTick() {
+    instance.scheduleNextTick = function() {
         if (this.subscribers.size === 0) {
             return;
         }
@@ -153,9 +140,9 @@ export class DayJsInterop {
         const delay = base - (now % base);
 
         this.timerId = setTimeout(this.tick, delay);
-    }
+    };
 
-    tick() {
+    instance.tick = function() {
         const now = Date.now();
 
         for (const sub of this.subscribers.values()) {
@@ -168,9 +155,9 @@ export class DayJsInterop {
 
         this.timerId = null;
         this.scheduleNextTick();
-    }
+    };
 
-    onVisibilityChange() {
+    instance.onVisibilityChange = function() {
         if (document.visibilityState !== "visible") {
             return;
         }
@@ -180,9 +167,9 @@ export class DayJsInterop {
             sub.lastTick = now;
             this.publish(sub);
         }
-    }
+    };
 
-    createSubscription(subscriber) {
+    instance.createSubscription = function(subscriber) {
         const id = this.nextId++;
         const intervalMs = this.normalizeInterval(subscriber.intervalMs);
 
@@ -203,32 +190,32 @@ export class DayJsInterop {
         this.publish(sub);
 
         return id;
-    }
+    };
 
-    init() {
+    instance.init = function() {
         this.ensureDayJs();
-    }
+    };
 
-    fromNow(value, withoutSuffix, timezone) {
+    instance.fromNow = function(value, withoutSuffix, timezone) {
         const dayjs = this.ensureDayJs();
         const target = this.withTimezone(dayjs(value), timezone);
         const base = this.getNow(timezone);
         return target.from(base, withoutSuffix === true);
-    }
+    };
 
-    toNow(value, withoutSuffix, timezone) {
+    instance.toNow = function(value, withoutSuffix, timezone) {
         const dayjs = this.ensureDayJs();
         const target = this.withTimezone(dayjs(value), timezone);
         const base = this.getNow(timezone);
         return target.to(base, withoutSuffix === true);
-    }
+    };
 
-    durationHumanize(amountMs, withoutSuffix) {
+    instance.durationHumanize = function(amountMs, withoutSuffix) {
         const dayjs = this.ensureDayJs();
         return dayjs.duration(amountMs).humanize(withoutSuffix === true);
-    }
+    };
 
-    subscribeRelative(value, intervalMs, withoutSuffix, timezone, dotNetRef) {
+    instance.subscribeRelative = function(value, intervalMs, withoutSuffix, timezone, dotNetRef) {
         return this.createSubscription({
             type: "relative",
             value,
@@ -237,13 +224,45 @@ export class DayJsInterop {
             timezone,
             dotNetRef
         });
-    }
+    };
 
-    unsubscribe(id) {
+    instance.unsubscribe = function(id) {
         this.subscribers.delete(id);
         this.recomputeBaseInterval();
         this.stopTimerIfIdle();
-    }
+    };
+
+        instance.subscribers = new Map();
+        instance.timerId = null;
+        instance.baseIntervalMs = 1000;
+        instance.nextId = 1;
+        instance.initialized = false;
+        instance.tick = instance.tick.bind(this);
+        instance.onVisibilityChange = instance.onVisibilityChange.bind(this);
+
+        if (typeof document !== "undefined") {
+            document.addEventListener("visibilitychange", instance.onVisibilityChange);
+        }
+    
+
+    return instance;
+})();
+export function fromNow(value, withoutSuffix, timezone) {
+    return interop.fromNow(value, withoutSuffix, timezone);
 }
 
-window.DayJsInterop = new DayJsInterop();
+export function toNow(value, withoutSuffix, timezone) {
+    return interop.toNow(value, withoutSuffix, timezone);
+}
+
+export function durationHumanize(durationMs, withoutSuffix) {
+    return interop.durationHumanize(durationMs, withoutSuffix);
+}
+
+export function subscribeRelative(value, intervalMs, withoutSuffix, timezone, dotNetRef) {
+    return interop.subscribeRelative(value, intervalMs, withoutSuffix, timezone, dotNetRef);
+}
+
+export function unsubscribe(id) {
+    return interop.unsubscribe(id);
+}

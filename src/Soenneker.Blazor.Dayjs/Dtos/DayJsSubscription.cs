@@ -1,19 +1,21 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.JSInterop;
+using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Blazor.Dayjs.Dtos;
 
 public sealed class DayJsSubscription : IAsyncDisposable
 {
-    private readonly IJSRuntime _jsRuntime;
+    private const string _modulePath = "/_content/Soenneker.Blazor.Dayjs/js/dayjsinterop.js";
+    private readonly IModuleImportUtil _moduleImportUtil;
     private readonly long _id;
     private readonly IDisposable _dotNetReference;
     private bool _disposed;
 
-    internal DayJsSubscription(IJSRuntime jsRuntime, long id, IDisposable dotNetReference)
+    internal DayJsSubscription(IModuleImportUtil moduleImportUtil, long id, IDisposable dotNetReference)
     {
-        _jsRuntime = jsRuntime;
+        _moduleImportUtil = moduleImportUtil;
         _id = id;
         _dotNetReference = dotNetReference;
     }
@@ -27,7 +29,8 @@ public sealed class DayJsSubscription : IAsyncDisposable
 
         try
         {
-            await _jsRuntime.InvokeVoidAsync("DayJsInterop.unsubscribe", _id);
+            IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, default);
+            await module.InvokeVoidAsync("unsubscribe", _id);
         }
         finally
         {
