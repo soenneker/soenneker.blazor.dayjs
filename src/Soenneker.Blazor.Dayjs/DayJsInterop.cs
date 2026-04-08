@@ -16,7 +16,7 @@ namespace Soenneker.Blazor.Dayjs;
 /// <inheritdoc cref="IDayJsInterop"/>
 public sealed class DayJsInterop : IDayJsInterop
 {
-    private const string _modulePath = "/_content/Soenneker.Blazor.Dayjs/js/dayjsinterop.js";
+    private const string _modulePath = "_content/Soenneker.Blazor.Dayjs/js/dayjsinterop.js";
 
     private readonly IResourceLoader _resourceLoader;
     private readonly IModuleImportUtil _moduleImportUtil;
