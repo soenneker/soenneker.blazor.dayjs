@@ -14,7 +14,7 @@
             <Div Space="Space.Y.Is2">
                 <Div>
                     <Paragraph Margin="Margin.Is0" TextSize="TextSize.Sm" TextColor="TextColor.MutedForeground">Created</Paragraph>
-                    <Div Display="Display.Flex" Flex="Flex.Wrap" AlignUtility="Align.ItemsBaseline" Gap="Gap.Is2">
+                    <Div Display="Display.Flex" Flex=@("flex-wrap") AlignUtility="Align.ItemsBaseline" Gap="Gap.Is2">
                         <DayJsRelative Value="CreatedAt" UpdateInterval="10s" />
                         <Span TextSize="TextSize.Sm" TextColor="TextColor.MutedForeground">(live)</Span>
                     </Div>

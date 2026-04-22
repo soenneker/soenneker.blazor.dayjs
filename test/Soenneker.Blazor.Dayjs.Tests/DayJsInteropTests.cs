@@ -1,20 +1,19 @@
-﻿using Soenneker.Blazor.Dayjs.Abstract;
-using Soenneker.Tests.FixturedUnit;
-using Xunit;
+using Soenneker.Blazor.Dayjs.Abstract;
+using Soenneker.Tests.HostedUnit;
 
 namespace Soenneker.Blazor.Dayjs.Tests;
 
-[Collection("Collection")]
-public class TomSelectInteropTests : FixturedUnitTest
+[ClassDataSource<Host>(Shared = SharedType.PerTestSession)]
+public class TomSelectInteropTests : HostedUnitTest
 {
     private readonly IDayJsInterop _util;
 
-    public TomSelectInteropTests(Fixture fixture, ITestOutputHelper output) : base(fixture, output)
+    public TomSelectInteropTests(Host host) : base(host)
     {
         _util = Resolve<IDayJsInterop>(true);
     }
 
-    [Fact]
+    [Test]
     public void Default()
     {
 
