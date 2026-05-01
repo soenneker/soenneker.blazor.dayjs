@@ -3,10 +3,9 @@
 @using Soenneker.Blazor.Dayjs.Abstract
 @using Soenneker.Blazor.Dayjs.Dtos
 @using Soenneker.Blazor.Dayjs.Utils
-@using Soenneker.Quark
 @inject IDayJsInterop DayJsInterop
 
-@inherits CoreCancellableComponent
+@inherits Soenneker.Lepton.Suite.LeptonCancellableIdentifiableContentElement
 
 @if (_value is not null)
 {

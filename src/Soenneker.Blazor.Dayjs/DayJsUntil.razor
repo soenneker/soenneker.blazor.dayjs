@@ -3,9 +3,8 @@
 @using System.Text
 @using System.Threading
 @using Soenneker.Blazor.Dayjs.Utils
-@using Soenneker.Quark
 
-@inherits CoreCancellableComponent
+@inherits Soenneker.Lepton.Suite.LeptonCancellableIdentifiableContentElement
 
 @if (_value is not null)
 {
@@ -38,8 +37,6 @@
 
     private async Task Resubscribe()
     {
-        await ResetCancellation();
-
         if (!AutomaticUpdate)
         {
             _value = FormatRemaining();
