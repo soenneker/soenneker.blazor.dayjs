@@ -32,18 +32,10 @@ public sealed class DayJsInterop : IDayJsInterop
         _scriptInitializer = new AsyncInitializer<DayJsOptions>(InitializeScript);
     }
 
-    private static string NormalizeContentUri(string uri)
-    {
-        if (string.IsNullOrEmpty(uri) || uri.Contains("://", StringComparison.Ordinal))
-            return uri;
-
-        return uri[0] == '/' ? uri : "/" + uri;
-    }
-
     private async ValueTask EnsureGlobalScript(CancellationToken token, string uri, string globalName, string? integrity = null,
         string? crossOrigin = "anonymous", bool loadInHead = false, bool scriptAsync = false, bool scriptDefer = false, int delay = 16, int? timeout = null)
     {
-        await _resourceLoader.LoadScriptAndWaitForVariable(NormalizeContentUri(uri), globalName, integrity, crossOrigin, loadInHead, scriptAsync, scriptDefer,
+        await _resourceLoader.LoadScriptAndWaitForVariable(uri, globalName, integrity, crossOrigin, loadInHead, scriptAsync, scriptDefer,
             delay, timeout, token);
     }
 
