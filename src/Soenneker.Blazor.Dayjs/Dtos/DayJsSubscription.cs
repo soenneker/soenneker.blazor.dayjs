@@ -5,6 +5,9 @@ using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Blazor.Dayjs.Dtos;
 
+/// <summary>
+/// Represents the day js subscription.
+/// </summary>
 public sealed class DayJsSubscription : IAsyncDisposable
 {
     private const string _modulePath = "_content/Soenneker.Blazor.Dayjs/js/dayjsinterop.js";
@@ -20,6 +23,10 @@ public sealed class DayJsSubscription : IAsyncDisposable
         _dotNetReference = dotNetReference;
     }
 
+    /// <summary>
+    /// Asynchronously releases resources used by the current instance.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     public async ValueTask DisposeAsync()
     {
         if (_disposed)

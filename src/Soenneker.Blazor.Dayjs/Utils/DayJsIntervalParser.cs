@@ -3,8 +3,17 @@ using System.Globalization;
 
 namespace Soenneker.Blazor.Dayjs.Utils;
 
+/// <summary>
+/// Represents the day js interval parser.
+/// </summary>
 public static class DayJsIntervalParser
 {
+    /// <summary>
+    /// Executes the parse or default operation.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <param name="fallback">The fallback.</param>
+    /// <returns>The result of the operation.</returns>
     public static TimeSpan ParseOrDefault(string? value, TimeSpan fallback)
     {
         if (string.IsNullOrWhiteSpace(value))
