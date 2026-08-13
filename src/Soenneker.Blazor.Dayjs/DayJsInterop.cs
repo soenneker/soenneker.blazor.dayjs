@@ -71,30 +71,30 @@ public sealed class DayJsInterop : IDayJsInterop
     {
         if (options.UseCdn)
         {
-            await EnsureGlobalScript(token, "https://cdn.jsdelivr.net/npm/dayjs@1.11.19/dayjs.min.js", "dayjs",
+            await EnsureGlobalScript(token, "https://cdn.jsdelivr.net/npm/dayjs@1.11.21/dayjs.min.js", "dayjs",
                 integrity: "sha256-nP25Pzivzy0Har7NZtMr/TODzfGWdlTrwmomYF2vQXM=", crossOrigin: "anonymous");
 
             if (options.LoadUtc)
             {
-                await EnsureGlobalScript(token, "https://cdn.jsdelivr.net/npm/dayjs@1.11.19/plugin/utc.js", "dayjs_plugin_utc",
+                await EnsureGlobalScript(token, "https://cdn.jsdelivr.net/npm/dayjs@1.11.21/plugin/utc.js", "dayjs_plugin_utc",
                     integrity: "sha256-fgEHLm8fLmRlBqCDzMUA7RnFplelpmRbP6/szfPOnAo=", crossOrigin: "anonymous");
             }
 
             if (options.LoadTimezone)
             {
-                await EnsureGlobalScript(token, "https://cdn.jsdelivr.net/npm/dayjs@1.11.19/plugin/timezone.js", "dayjs_plugin_timezone",
+                await EnsureGlobalScript(token, "https://cdn.jsdelivr.net/npm/dayjs@1.11.21/plugin/timezone.js", "dayjs_plugin_timezone",
                     integrity: "sha256-qChvIvJkeTbV5m0C0KrBl+sOicaIklgEk82lwpDSkZE=", crossOrigin: "anonymous");
             }
 
             if (options.LoadRelativeTime)
             {
-                await EnsureGlobalScript(token, "https://cdn.jsdelivr.net/npm/dayjs@1.11.19/plugin/relativeTime.js", "dayjs_plugin_relativeTime",
+                await EnsureGlobalScript(token, "https://cdn.jsdelivr.net/npm/dayjs@1.11.21/plugin/relativeTime.js", "dayjs_plugin_relativeTime",
                     integrity: "sha256-muryXOPFkVJcJO1YFmhuKyXYmGDT2TYVxivG0MCgRzg=", crossOrigin: "anonymous");
             }
 
             if (options.LoadDuration)
             {
-                await EnsureGlobalScript(token, "https://cdn.jsdelivr.net/npm/dayjs@1.11.19/plugin/duration.js", "dayjs_plugin_duration",
+                await EnsureGlobalScript(token, "https://cdn.jsdelivr.net/npm/dayjs@1.11.21/plugin/duration.js", "dayjs_plugin_duration",
                     integrity: "sha256-GV/dpEfJoONuuRAyFBHaj2U7CnzhUYJLXAX4zJybJFA=", crossOrigin: "anonymous");
             }
         }
