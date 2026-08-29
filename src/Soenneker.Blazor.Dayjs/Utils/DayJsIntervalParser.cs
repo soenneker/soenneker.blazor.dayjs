@@ -9,11 +9,11 @@ namespace Soenneker.Blazor.Dayjs.Utils;
 public static class DayJsIntervalParser
 {
     /// <summary>
-    /// Executes the parse or default operation.
+    /// Parses a duration or unit-suffixed interval, returning the fallback when the input is invalid.
     /// </summary>
-    /// <param name="value">The value.</param>
-    /// <param name="fallback">The fallback.</param>
-    /// <returns>The result of the operation.</returns>
+    /// <param name="value">Text to parse.</param>
+    /// <param name="fallback">Fallback for the parse or default operation.</param>
+    /// <returns>The resulting time Span.</returns>
     public static TimeSpan ParseOrDefault(string? value, TimeSpan fallback)
     {
         if (string.IsNullOrWhiteSpace(value))

@@ -13,6 +13,8 @@ public static class DayJsRegistrar
     /// <summary>
     /// Adds <see cref="IDayJsInterop"/> as a scoped service. <para/>
     /// </summary>
+    /// <param name="services">Service collection that receives the registration.</param>
+    /// <returns>The same service collection, so additional registrations can be chained.</returns>
     public static IServiceCollection AddDayJsInteropAsScoped(this IServiceCollection services)
     {
         services.AddResourceLoaderAsScoped();
