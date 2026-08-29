@@ -17,6 +17,7 @@
     [Parameter] public bool AutomaticUpdate { get; set; } = true;
 
     private string? _value;
+    private CancellationTokenSource? _updateCancellationSource;
     private DayJsSubscriptionKey _subscriptionKey;
     private bool _hasSubscriptionKey;
 
@@ -34,6 +35,8 @@
 
     private async Task Resubscribe()
     {
+        StopUpdating();
+
         if (!AutomaticUpdate)
         {
             _value = FormatNow();
@@ -42,9 +45,20 @@
         }
 
         TimeSpan interval = DayJsIntervalParser.ParseOrDefault(UpdateInterval, TimeSpan.FromSeconds(1));
+        _updateCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken);
         _value = FormatNow();
         _ = InvokeAsync(StateHasChanged);
-        _ = RunLoop(interval, CancellationToken);
+        _ = RunLoop(interval, _updateCancellationSource.Token);
+    }
+
+    private void StopUpdating()
+    {
+        if (_updateCancellationSource is null)
+            return;
+
+        _updateCancellationSource.Cancel();
+        _updateCancellationSource.Dispose();
+        _updateCancellationSource = null;
     }
 
     private async Task RunLoop(TimeSpan interval, CancellationToken token)
@@ -76,7 +90,7 @@
             return DateTimeOffset.Now;
 
         if (TryResolveTimeZone(Timezone, out TimeZoneInfo? zone))
-            return TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, zone);
+            return TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, zone!);
 
         return DateTimeOffset.Now;
     }
@@ -102,6 +116,7 @@
 
     public override async ValueTask DisposeAsync()
     {
+        StopUpdating();
         await base.DisposeAsync();
     }
 }

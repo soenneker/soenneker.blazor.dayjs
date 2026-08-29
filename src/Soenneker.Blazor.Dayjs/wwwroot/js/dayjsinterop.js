@@ -37,7 +37,11 @@ function ensureDayJs() {
 function withTimezone(dayjsInstance, timezone) {
     const dayjs = ensureDayJs();
 
-    if (timezone && dayjs.tz) {
+    if (timezone) {
+        if (!dayjs.tz) {
+            throw new Error("Day.js timezone support is not loaded. Initialize with LoadUtc and LoadTimezone enabled.");
+        }
+
         return dayjsInstance.tz(timezone);
     }
 
@@ -47,7 +51,11 @@ function withTimezone(dayjsInstance, timezone) {
 function getNow(timezone) {
     const dayjs = ensureDayJs();
 
-    if (timezone && dayjs.tz) {
+    if (timezone) {
+        if (!dayjs.tz) {
+            throw new Error("Day.js timezone support is not loaded. Initialize with LoadUtc and LoadTimezone enabled.");
+        }
+
         return dayjs().tz(timezone);
     }
 
@@ -108,11 +116,9 @@ function stopTimerIfIdle() {
 }
 
 function safeUpdate(sub, value) {
-    try {
-        sub.dotNetRef.invokeMethodAsync("OnUpdate", value);
-    } catch (error) {
+    sub.dotNetRef.invokeMethodAsync("OnUpdate", value).catch(error => {
         console.error("Dayjs subscription update failed", error);
-    }
+    });
 }
 
 function computeValue(sub) {

@@ -5,83 +5,99 @@
 [![](https://img.shields.io/github/actions/workflow/status/soenneker/soenneker.blazor.dayjs/codeql.yml?label=CodeQL&style=for-the-badge)](https://github.com/soenneker/soenneker.blazor.dayjs/actions/workflows/codeql.yml)
 
 # Soenneker.Blazor.Dayjs
-### Blazor interop for Day.js
 
-A lightweight Blazor interop library for [Day.js](https://day.js.org/) focused on **live, auto-updating time displays**.
-
----
+A Blazor wrapper around [Day.js](https://day.js.org/) for relative timestamps and humanized durations, with Razor components for live clocks and countdowns.
 
 ## Installation
 
 ```bash
 dotnet add package Soenneker.Blazor.Dayjs
-````
-
----
+```
 
 ## Setup
 
-Register the service:
-
 ```csharp
+using Soenneker.Blazor.Dayjs.Registrars;
+
 builder.Services.AddDayJsInteropAsScoped();
 ```
 
-Add a using:
+Initialize the plugins your application uses before rendering a relative-time component or calling the interop service. A layout or other parent component is a convenient place:
+
+```razor
+@using Soenneker.Blazor.Dayjs.Abstract
+@using Soenneker.Blazor.Dayjs.Configuration
+@inject IDayJsInterop DayJs
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await DayJs.Initialize(new DayJsOptions
+        {
+            LoadRelativeTime = true,
+            LoadDuration = true
+        });
+    }
+}
+```
+
+`UseCdn` defaults to `true`. Set it to `false` to load the Day.js files packaged with this library instead of jsDelivr. Initialization is shared by the scoped service, so choose the complete plugin set on the first call.
+
+## Components
+
+Add the component namespace to `_Imports.razor`:
 
 ```razor
 @using Soenneker.Blazor.Dayjs
 ```
 
----
-
-## Components
-
-### Live relative time
+### Relative time
 
 ```razor
-<DayJsRelative Value="CreatedAt" UpdateInterval="1m" />
+<DayJsRelative Value="article.PublishedAt"
+               UpdateInterval="30s" />
 ```
 
----
+This renders values such as `5 minutes ago`. It requires `LoadRelativeTime`. Set `WithoutSuffix="true"` for text such as `5 minutes`, or `AutomaticUpdate="false"` for a single calculation.
 
 ### Live clock
-
-Uses .NET date/time format strings.
 
 ```razor
 <DayJsNow Format="HH:mm:ss" UpdateInterval="1s" />
 ```
 
----
+`Format` is a .NET date/time format string. `Timezone` is resolved by .NET's `TimeZoneInfo`; if omitted, the process/browser local time is used.
 
-### Countdown / time until
-
-Uses .NET `TimeSpan` format strings.
+### Countdown
 
 ```razor
-<DayJsUntil Value="LaunchTime" Format="mm:ss" UpdateInterval="1s" />
+<DayJsUntil Value="eventStartsAt"
+            Format="d.hh:mm:ss"
+            UpdateInterval="1s" />
 ```
 
----
+`Format` is a custom .NET `TimeSpan` format; colons are escaped for you. Expired countdowns render zero by default. Set `ClampToZero="false"` to keep displaying a negative duration.
 
-## Configuration
+Intervals accept a `TimeSpan` value or a positive number followed by `ms`, `s`, `m`, `h`, or `d`. Invalid and non-positive component intervals fall back to that component's default.
 
-Day.js plugins are loaded explicitly.
+## Interop API
 
-```razor
-@using Soenneker.Blazor.Dayjs.Configuration
-@inject IDayJsInterop DayJsInterop
-```
+Inject `IDayJsInterop` when you need the value rather than rendered text:
 
 ```csharp
-await DayJsInterop.Initialize(new DayJsOptions
-{
-    UseCdn = true,
+string age = await DayJs.FromNow(article.PublishedAt);
+string duration = await DayJs.DurationHumanize(TimeSpan.FromMinutes(90));
+```
 
-    LoadRelativeTime = true,
-    LoadTimezone     = true,
-    LoadUtc          = true,
-    LoadDuration     = true
-});
+`FromNow`, `ToNow`, and `SubscribeRelative` require `LoadRelativeTime`. `DurationHumanize` requires `LoadDuration`. To pass an IANA timezone such as `America/Chicago` to the relative-time methods, enable both `LoadUtc` and `LoadTimezone`.
+
+`SubscribeRelative` returns an `IAsyncDisposable`; retain and dispose it when its owner is disposed:
+
+```csharp
+DayJsSubscription subscription = await DayJs.SubscribeRelative(
+    article.PublishedAt,
+    TimeSpan.FromMinutes(1),
+    value => relativeText = value);
+
+await subscription.DisposeAsync();
 ```

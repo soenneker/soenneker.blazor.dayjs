@@ -159,6 +159,11 @@ public sealed class DayJsInterop : IDayJsInterop
     public async ValueTask<DayJsSubscription> SubscribeRelative(DateTimeOffset value, TimeSpan updateInterval, Action<string> onUpdate,
         bool withoutSuffix = false, string? timezone = null, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(onUpdate);
+
+        if (updateInterval <= TimeSpan.Zero)
+            throw new ArgumentOutOfRangeException(nameof(updateInterval), "The update interval must be greater than zero.");
+
         CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
 
         using (source)
@@ -168,10 +173,18 @@ public sealed class DayJsInterop : IDayJsInterop
             var callback = new DayJsUpdateCallback(onUpdate);
             DotNetObjectReference<DayJsUpdateCallback> dotNetRef = DotNetObjectReference.Create(callback);
 
-            IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
-            var id = await module.InvokeAsync<long>("subscribeRelative", linked, value, updateInterval.TotalMilliseconds, withoutSuffix, timezone, dotNetRef);
+            try
+            {
+                IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
+                var id = await module.InvokeAsync<long>("subscribeRelative", linked, value, updateInterval.TotalMilliseconds, withoutSuffix, timezone, dotNetRef);
 
-            return new DayJsSubscription(_moduleImportUtil, id, dotNetRef);
+                return new DayJsSubscription(_moduleImportUtil, id, dotNetRef);
+            }
+            catch
+            {
+                dotNetRef.Dispose();
+                throw;
+            }
         }
     }
 
