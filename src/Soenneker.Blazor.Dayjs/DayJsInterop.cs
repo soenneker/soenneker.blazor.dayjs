@@ -59,12 +59,9 @@ public sealed class DayJsInterop : IDayJsInterop
             await _scriptInitializer.Init(_options, linked);
     }
 
-    private async ValueTask EnsureInitialized(CancellationToken cancellationToken)
+    private ValueTask EnsureInitialized(CancellationToken cancellationToken)
     {
-        CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
-
-        using (source)
-            await _scriptInitializer.Init(_options, linked);
+        return _scriptInitializer.Init(_options, cancellationToken);
     }
 
     private async ValueTask InitializeScript(DayJsOptions options, CancellationToken token)
