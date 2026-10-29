@@ -39,6 +39,14 @@ public sealed class DayJsSubscription : IAsyncDisposable
             IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, default);
             await module.InvokeVoidAsync("unsubscribe", _id);
         }
+        catch (JSDisconnectedException)
+        {
+            // The browser subscription is gone with the circuit; still release the .NET callback below.
+        }
+        catch (JSException exception)
+        {
+            throw new JSException($"JavaScript operation 'DayJsSubscription.DisposeAsync' failed: {exception.Message}", exception);
+        }
         finally
         {
             _dotNetReference.Dispose();

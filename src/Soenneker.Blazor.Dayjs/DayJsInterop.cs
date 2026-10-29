@@ -122,9 +122,16 @@ public sealed class DayJsInterop : IDayJsInterop
 
         using (source)
         {
-            await EnsureInitialized(linked);
-            IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
-            return await module.InvokeAsync<string>("fromNow", linked, value, withoutSuffix, timezone);
+            try
+            {
+                await EnsureInitialized(linked);
+                IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
+                return await module.InvokeAsync<string>("fromNow", linked, value, withoutSuffix, timezone);
+            }
+            catch (JSException exception)
+            {
+                throw new JSException($"JavaScript operation 'DayJsInterop.FromNow' failed: {exception.Message}", exception);
+            }
         }
     }
 
@@ -135,9 +142,16 @@ public sealed class DayJsInterop : IDayJsInterop
 
         using (source)
         {
-            await EnsureInitialized(linked);
-            IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
-            return await module.InvokeAsync<string>("toNow", linked, value, withoutSuffix, timezone);
+            try
+            {
+                await EnsureInitialized(linked);
+                IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
+                return await module.InvokeAsync<string>("toNow", linked, value, withoutSuffix, timezone);
+            }
+            catch (JSException exception)
+            {
+                throw new JSException($"JavaScript operation 'DayJsInterop.ToNow' failed: {exception.Message}", exception);
+            }
         }
     }
 
@@ -147,9 +161,16 @@ public sealed class DayJsInterop : IDayJsInterop
 
         using (source)
         {
-            await EnsureInitialized(linked);
-            IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
-            return await module.InvokeAsync<string>("durationHumanize", linked, duration.TotalMilliseconds, withoutSuffix);
+            try
+            {
+                await EnsureInitialized(linked);
+                IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
+                return await module.InvokeAsync<string>("durationHumanize", linked, duration.TotalMilliseconds, withoutSuffix);
+            }
+            catch (JSException exception)
+            {
+                throw new JSException($"JavaScript operation 'DayJsInterop.DurationHumanize' failed: {exception.Message}", exception);
+            }
         }
     }
 
