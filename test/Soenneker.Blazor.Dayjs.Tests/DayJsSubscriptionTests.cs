@@ -46,7 +46,7 @@ public sealed class DayJsSubscriptionTests
         catch (JSException exception)
         {
             await Assert.That(ReferenceEquals(exception.InnerException, failure)).IsTrue();
-            await Assert.That(exception.Message.Contains("DayJsSubscription.DisposeAsync", StringComparison.Ordinal)).IsTrue();
+            await Assert.That(exception.Message.Contains("unsubscribe", StringComparison.Ordinal)).IsTrue();
             await Assert.That(callback.IsDisposed).IsTrue();
             return;
         }

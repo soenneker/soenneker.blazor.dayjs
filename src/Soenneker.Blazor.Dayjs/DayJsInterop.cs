@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.JSInterop;
+using Soenneker.Blazor.Extensions.IJSObjectReferences;
 using Soenneker.Asyncs.Initializers;
 using Soenneker.Blazor.Dayjs.Abstract;
 using Soenneker.Blazor.Dayjs.Configuration;
@@ -122,16 +123,9 @@ public sealed class DayJsInterop : IDayJsInterop
 
         using (source)
         {
-            try
-            {
-                await EnsureInitialized(linked);
-                IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
-                return await module.InvokeAsync<string>("fromNow", linked, value, withoutSuffix, timezone);
-            }
-            catch (JSException exception)
-            {
-                throw new JSException($"JavaScript operation 'DayJsInterop.FromNow' failed: {exception.Message}", exception);
-            }
+            await EnsureInitialized(linked);
+            IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
+            return await module.InvokeWithContextAsync<string>("fromNow", linked, value, withoutSuffix, timezone);
         }
     }
 
@@ -142,16 +136,9 @@ public sealed class DayJsInterop : IDayJsInterop
 
         using (source)
         {
-            try
-            {
-                await EnsureInitialized(linked);
-                IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
-                return await module.InvokeAsync<string>("toNow", linked, value, withoutSuffix, timezone);
-            }
-            catch (JSException exception)
-            {
-                throw new JSException($"JavaScript operation 'DayJsInterop.ToNow' failed: {exception.Message}", exception);
-            }
+            await EnsureInitialized(linked);
+            IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
+            return await module.InvokeWithContextAsync<string>("toNow", linked, value, withoutSuffix, timezone);
         }
     }
 
@@ -161,16 +148,9 @@ public sealed class DayJsInterop : IDayJsInterop
 
         using (source)
         {
-            try
-            {
-                await EnsureInitialized(linked);
-                IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
-                return await module.InvokeAsync<string>("durationHumanize", linked, duration.TotalMilliseconds, withoutSuffix);
-            }
-            catch (JSException exception)
-            {
-                throw new JSException($"JavaScript operation 'DayJsInterop.DurationHumanize' failed: {exception.Message}", exception);
-            }
+            await EnsureInitialized(linked);
+            IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
+            return await module.InvokeWithContextAsync<string>("durationHumanize", linked, duration.TotalMilliseconds, withoutSuffix);
         }
     }
 

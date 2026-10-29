@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.JSInterop;
+using Soenneker.Blazor.Extensions.IJSObjectReferences;
 using Soenneker.Blazor.Utils.ModuleImport.Abstract;
 
 namespace Soenneker.Blazor.Dayjs.Dtos;
@@ -37,15 +38,11 @@ public sealed class DayJsSubscription : IAsyncDisposable
         try
         {
             IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, default);
-            await module.InvokeVoidAsync("unsubscribe", _id);
+            await module.InvokeVoidWithContextAsync("unsubscribe", _id);
         }
         catch (JSDisconnectedException)
         {
             // The browser subscription is gone with the circuit; still release the .NET callback below.
-        }
-        catch (JSException exception)
-        {
-            throw new JSException($"JavaScript operation 'DayJsSubscription.DisposeAsync' failed: {exception.Message}", exception);
         }
         finally
         {
