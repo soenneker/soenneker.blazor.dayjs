@@ -11,7 +11,7 @@ namespace Soenneker.Blazor.Dayjs.Dtos;
 /// </summary>
 public sealed class DayJsSubscription : IAsyncDisposable
 {
-    private const string _modulePath = "_content/Soenneker.Blazor.Dayjs/js/dayjsinterop.js";
+    private const string _modulePath = "_content/Soenneker.Blazor.Dayjs/js/interop/dayjsinterop.min.js";
     private readonly IModuleImportUtil _moduleImportUtil;
     private readonly long _id;
     private readonly IDisposable _dotNetReference;
