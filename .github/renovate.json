@@ -5,6 +5,9 @@
   "autoApprove": true,
   "semanticCommits": "disabled",
   "rangeStrategy": "bump",
+  "constraints": {
+    "npm": "^11.19.0"
+  },
   "packageRules": [
     {
       "description": "Do not update exact NuGet pins like [1.2.3]",
