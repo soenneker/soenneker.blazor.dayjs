@@ -6,7 +6,7 @@
   "semanticCommits": "disabled",
   "rangeStrategy": "bump",
   "constraints": {
-    "npm": "^12.2.2"
+    "npm": "^12.2.3"
   },
   "packageRules": [
     {
